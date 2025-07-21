@@ -37,6 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
+    #our custom apps
+    'users',
+    'events', 
+    'search',
+    'interaction',
 ]
 
 MIDDLEWARE = [
@@ -110,11 +116,17 @@ USE_I18N = True
 
 USE_TZ = True
 
+# Media files (uploads)
+import os
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.2/howto/static-files/
-
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+# The directory where static files are collected
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
