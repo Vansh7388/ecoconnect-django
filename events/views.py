@@ -1,8 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpResponse
-from .forms import EventCreationForm
+from django.http import HttpResponse, Http404
+from .forms import EventCreationForm, EventEditForm
 from .models import Event, EventCategory
 from django.db.models import Q
 
@@ -40,6 +40,12 @@ def event_list(request):
     
     return render(request, 'events/event_list.html', context)
 
+def event_detail(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    # Prefetch photos for better performance
+    event = Event.objects.prefetch_related('photos__user').get(id=event_id)
+    return render(request, 'events/event_detail.html', {'event': event})
+
 @login_required
 def create_event(request):
     if request.method == 'POST':
@@ -49,10 +55,50 @@ def create_event(request):
             event.organizer = request.user  # Set the current user as organizer
             event.save()
             messages.success(request, f'Event "{event.title}" created successfully!')
-            return redirect('events:event_list')
+            return redirect('events:event_detail', event_id=event.id)
         else:
             messages.error(request, 'Please correct the errors below.')
     else:
         form = EventCreationForm()
     
     return render(request, 'events/create_event.html', {'form': form})
+
+@login_required
+def edit_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check if user is the organizer
+    if request.user != event.organizer:
+        messages.error(request, 'You can only edit events that you organized.')
+        return redirect('events:event_detail', event_id=event.id)
+    
+    if request.method == 'POST':
+        form = EventEditForm(request.POST, instance=event)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Event "{event.title}" updated successfully!')
+            return redirect('events:event_detail', event_id=event.id)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = EventEditForm(instance=event)
+    
+    return render(request, 'events/edit_event.html', {'form': form, 'event': event})
+
+@login_required
+def delete_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check if user is the organizer
+    if request.user != event.organizer:
+        messages.error(request, 'You can only delete events that you organized.')
+        return redirect('events:event_detail', event_id=event.id)
+    
+    if request.method == 'POST':
+        event_title = event.title
+        event.delete()
+        messages.success(request, f'Event "{event_title}" has been deleted successfully.')
+        return redirect('events:event_list')
+    
+    # If not POST, redirect to detail page
+    return redirect('events:event_detail', event_id=event.id)

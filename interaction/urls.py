@@ -6,4 +6,5 @@ app_name = 'interaction'
 urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('upload/', views.upload_photo, name='upload_photo'),
+    path('upload/<int:event_id>/', views.upload_photo, name='upload_photo_event'),
 ]

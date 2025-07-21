@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Photo - EcoConnect{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <div class="text-center mb-4">
+                <h2 class="text-success"><i class="fas fa-camera"></i> Share Your Environmental Impact</h2>
+                <p class="text-muted">Upload photos from environmental events and activities</p>
+            </div>
+
+            <!-- Upload Form -->
+            <div class="card card-eco shadow">
+                <div class="card-header eco-bg text-white">
+                    <h4 class="mb-0"><i class="fas fa-upload"></i> Upload Event Photo</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Event Selection -->
+                        <div class="mb-3">
+                            <label for="event" class="form-label">
+                                <i class="fas fa-calendar text-success"></i> Select Event *
+                            </label>
+                            <select class="form-select" id="event" name="event" required>
+                                <option value="">Choose an event...</option>
+                                {% for event in user_events %}
+                                    <option value="{{ event.id }}" {% if selected_event and selected_event.id == event.id %}selected{% endif %}>
+                                        {{ event.title }} - {{ event.date_time|date:"M d, Y" }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Select an event you organized or attended</small>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="mb-3">
+                            <label for="image" class="form-label">
+                                <i class="fas fa-image text-success"></i> Photo *
+                            </label>
+                            <input type="file" class="form-control" id="image" name="image" accept="image/*" required>
+                            <small class="form-text text-muted">Supported formats: JPG, PNG, GIF (Max 5MB)</small>
+                        </div>
+
+                        <!-- Caption -->
+                        <div class="mb-4">
+                            <label for="caption" class="form-label">
+                                <i class="fas fa-comment text-success"></i> Caption (Optional)
+                            </label>
+                            <input type="text" class="form-control" id="caption" name="caption" 
+                                   placeholder="Describe your photo...">
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-upload"></i> Upload Photo
+                                </button>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <a href="{% url 'interaction:dashboard' %}" class="btn btn-outline-secondary btn-lg w-100">
+                                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Upload Tips -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-lightbulb text-warning"></i> Photo Upload Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> <strong>High Quality:</strong> Use clear, well-lit photos</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Show Impact:</strong> Before/after shots work great</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Include People:</strong> Show community involvement</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> <strong>Document Progress:</strong> Show the work being done</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Celebrate Success:</strong> Capture completed projects</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Inspire Others:</strong> Show positive environmental impact</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

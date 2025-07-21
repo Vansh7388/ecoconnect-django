@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Event - {{ event.title }} - EcoConnect{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{% url 'events:event_list' %}">Events</a></li>
+                    <li class="breadcrumb-item"><a href="{% url 'events:event_detail' event.id %}">{{ event.title }}</a></li>
+                    <li class="breadcrumb-item active">Edit</li>
+                </ol>
+            </nav>
+            
+            <div class="text-center mb-4">
+                <h2 class="text-warning"><i class="fas fa-edit"></i> Edit Event</h2>
+                <p class="text-muted">Update your environmental event details</p>
+            </div>
+
+            <!-- Edit Event Form -->
+            <div class="card card-eco shadow">
+                <div class="card-header bg-warning text-dark">
+                    <h4 class="mb-0"><i class="fas fa-pencil-alt"></i> Update Event Details</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Event Title -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">
+                                <i class="fas fa-heading text-warning"></i> Event Title *
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                   value="{{ form.title.value|default:event.title }}" required>
+                        </div>
+
+                        <!-- Event Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-align-left text-warning"></i> Event Description *
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="5" required>{{ form.description.value|default:event.description }}</textarea>
+                        </div>
+
+                        <!-- Date and Time -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="date_time" class="form-label">
+                                    <i class="fas fa-calendar-alt text-warning"></i> Date & Time *
+                                </label>
+                                <input type="datetime-local" class="form-control" id="date_time" name="date_time" 
+                                       value="{{ event.date_time|date:'Y-m-d\TH:i' }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="max_participants" class="form-label">
+                                    <i class="fas fa-users text-warning"></i> Max Participants
+                                </label>
+                                <input type="number" class="form-control" id="max_participants" name="max_participants" 
+                                       value="{{ form.max_participants.value|default:event.max_participants }}" min="1" max="1000">
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="mb-3">
+                            <label for="location" class="form-label">
+                                <i class="fas fa-map-marker-alt text-warning"></i> Location *
+                            </label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   value="{{ form.location.value|default:event.location }}" required>
+                        </div>
+
+                        <!-- Status -->
+                        <div class="mb-4">
+                            <label for="status" class="form-label">
+                                <i class="fas fa-flag text-warning"></i> Event Status
+                            </label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="upcoming" {% if event.status == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                                <option value="ongoing" {% if event.status == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                                <option value="completed" {% if event.status == 'completed' %}selected{% endif %}>Completed</option>
+                            </select>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-md-4 mb-2">
+                                <button type="submit" class="btn btn-warning btn-lg w-100">
+                                    <i class="fas fa-save"></i> Update Event
+                                </button>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-secondary btn-lg w-100">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                            <div class="col-md-4 mb-2">
+                                <button type="button" class="btn btn-outline-danger btn-lg w-100" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Current Event Info -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle text-info"></i> Current Event Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Created:</strong> {{ event.created_at|date:"M d, Y g:i A" }}</p>
+                            <p><strong>Category:</strong> {{ event.category.name }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Current Status:</strong> 
+                                <span class="badge bg-{{ event.status|yesno:'success,warning,secondary' }}">
+                                    {{ event.get_status_display }}
+                                </span>
+                            </p>
+                            <p><strong>Organizer:</strong> {{ event.organizer.first_name }} {{ event.organizer.last_name }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger">
+                    <i class="fas fa-exclamation-triangle"></i> Delete Event
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete "<strong>{{ event.title }}</strong>"?</p>
+                <p class="text-danger">This action cannot be undone and will remove all associated data.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="post" action="{% url 'events:delete_event' event.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Delete Event
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for form enhancements -->
+<script>
+    // Set minimum date to today for editing
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('date_time');
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        dateInput.min = now.toISOString().slice(0, 16);
+    });
+</script>
+{% endblock %}
