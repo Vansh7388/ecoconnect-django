@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+{% block title %}My Dashboard - EcoConnect{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Dashboard Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-tachometer-alt text-success"></i> My Dashboard</h2>
+            <p class="text-muted">Track your environmental impact and upcoming events</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'events:create_event' %}" class="btn btn-success">
+                <i class="fas fa-plus"></i> Create Event
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card card-eco text-center">
+                <div class="card-body">
+                    <i class="fas fa-calendar-check fa-2x text-success mb-2"></i>
+                    <h4 class="fw-bold text-success">{{ events_organized }}</h4>
+                    <small class="text-muted">Events Organized</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card card-eco text-center">
+                <div class="card-body">
+                    <i class="fas fa-users fa-2x text-info mb-2"></i>
+                    <h4 class="fw-bold text-info">{{ events_joined }}</h4>
+                    <small class="text-muted">Events Joined</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card card-eco text-center">
+                <div class="card-body">
+                    <i class="fas fa-images fa-2x text-warning mb-2"></i>
+                    <h4 class="fw-bold text-warning">{{ photos_uploaded }}</h4>
+                    <small class="text-muted">Photos Shared</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card card-eco text-center">
+                <div class="card-body">
+                    <i class="fas fa-eye fa-2x text-secondary mb-2"></i>
+                    <h4 class="fw-bold text-secondary">{{ total_visits }}</h4>
+                    <small class="text-muted">Site Visits</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Upcoming Events -->
+    <div class="row">
+        <!-- My Organized Events -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-plus text-success"></i> My Organized Events</h5>
+                </div>
+                <div class="card-body">
+                    {% if organized_events %}
+                        {% for event in organized_events %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <h6 class="mb-1">{{ event.title }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ event.date_time|date:"M d, Y g:i A" }}<br>
+                                    <i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                                </small>
+                            </div>
+                            <span class="badge bg-{{ event.status|yesno:'success,warning,secondary' }}">
+                                {{ event.get_status_display }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-2"></i>
+                            <p class="text-muted">You haven't organized any events yet.</p>
+                            <a href="{% url 'events:create_event' %}" class="btn btn-success btn-sm">
+                                <i class="fas fa-plus"></i> Create Your First Event
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Events I'm Attending -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calendar-check text-info"></i> Events I'm Attending</h5>
+                </div>
+                <div class="card-body">
+                    {% if joined_events %}
+                        {% for participation in joined_events %}
+                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                            <div>
+                                <h6 class="mb-1">{{ participation.event.title }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar"></i> {{ participation.event.date_time|date:"M d, Y g:i A" }}<br>
+                                    <i class="fas fa-user"></i> by {{ participation.event.organizer.first_name }}
+                                </small>
+                            </div>
+                            <span class="badge bg-primary">Registered</span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-2"></i>
+                            <p class="text-muted">You haven't joined any events yet.</p>
+                            <a href="{% url 'events:event_list' %}" class="btn btn-info btn-sm">
+                                <i class="fas fa-search"></i> Browse Events
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Timeline -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-clock text-warning"></i> Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_activity %}
+                        {% for activity in recent_activity %}
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-circle text-success" style="font-size: 8px; margin-top: 8px;"></i>
+                            </div>
+                            <div class="ms-3">
+                                <p class="mb-1">{{ activity.description }}</p>
+                                <small class="text-muted">{{ activity.date|timesince }} ago</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-history fa-3x text-muted mb-2"></i>
+                            <p class="text-muted">Your activity will appear here as you use EcoConnect.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
