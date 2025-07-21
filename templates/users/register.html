@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - EcoConnect{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card card-eco shadow">
+                <div class="card-header eco-bg text-white text-center">
+                    <h3><i class="fas fa-user-plus"></i> Join EcoConnect Community</h3>
+                    <p class="mb-0">Start making a positive environmental impact today!</p>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="first_name" class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="first_name" name="first_name" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="last_name" class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="password1" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password1" name="password1" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="password2" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="password2" name="password2" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Tell us about yourself (Optional)</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3" placeholder="Share your environmental interests and goals..."></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">Location (Optional)</label>
+                                <input type="text" class="form-control" id="location" name="location" placeholder="City, Province">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="environmental_interests" class="form-label">Environmental Interests (Optional)</label>
+                                <input type="text" class="form-control" id="environmental_interests" name="environmental_interests" placeholder="Tree Planting, Beach Cleanup, etc.">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 btn-lg">
+                            <i class="fas fa-user-plus"></i> Create Account
+                        </button>
+                    </form>
+                    <div class="text-center mt-3">
+                        <p>Already have an account? <a href="{% url 'users:login' %}" class="text-success">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
