@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Event - EcoConnect{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Page Header -->
+            <div class="text-center mb-4">
+                <h2 class="text-success"><i class="fas fa-plus-circle"></i> Create Environmental Event</h2>
+                <p class="text-muted">Organize a community event to make a positive environmental impact</p>
+            </div>
+
+            <!-- Event Creation Form -->
+            <div class="card card-eco shadow">
+                <div class="card-header eco-bg text-white">
+                    <h4 class="mb-0"><i class="fas fa-calendar-plus"></i> Event Details</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <!-- Event Title -->
+                        <div class="mb-3">
+                            <label for="title" class="form-label">
+                                <i class="fas fa-heading text-success"></i> Event Title *
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="title" name="title" 
+                                   placeholder="e.g., Community Tree Planting at Central Park" required>
+                            <small class="form-text text-muted">Make it descriptive and engaging</small>
+                        </div>
+
+                        <!-- Event Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-align-left text-success"></i> Event Description *
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="5" 
+                                      placeholder="Describe your event, what participants will do, what to bring, and the environmental impact..." required></textarea>
+                        </div>
+
+                        <!-- Date and Time -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="date_time" class="form-label">
+                                    <i class="fas fa-calendar-alt text-success"></i> Date & Time *
+                                </label>
+                                <input type="datetime-local" class="form-control" id="date_time" name="date_time" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="max_participants" class="form-label">
+                                    <i class="fas fa-users text-success"></i> Max Participants
+                                </label>
+                                <input type="number" class="form-control" id="max_participants" name="max_participants" 
+                                       value="50" min="1" max="1000">
+                            </div>
+                        </div>
+
+                        <!-- Location -->
+                        <div class="mb-3">
+                            <label for="location" class="form-label">
+                                <i class="fas fa-map-marker-alt text-success"></i> Location *
+                            </label>
+                            <input type="text" class="form-control" id="location" name="location" 
+                                   placeholder="Full address or landmark (e.g., 123 Main St, Oshawa, ON)" required>
+                            <small class="form-text text-muted">Be specific so participants can find the location easily</small>
+                        </div>
+
+                        <!-- Category -->
+                        <div class="mb-4">
+                            <label for="category" class="form-label">
+                                <i class="fas fa-tag text-success"></i> Event Category *
+                            </label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="">Select a category...</option>
+                                <!-- These will be populated from database -->
+                                <option value="1">Tree Planting</option>
+                                <option value="2">Beach Cleanup</option>
+                                <option value="3">Workshop</option>
+                                <option value="4">Recycling Drive</option>
+                                <option value="5">Community Garden</option>
+                            </select>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <button type="submit" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-check"></i> Create Event
+                                </button>
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary btn-lg w-100">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tips Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-lightbulb text-warning"></i> Tips for a Successful Event</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> <strong>Clear Description:</strong> Explain what participants will do</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Specific Location:</strong> Include full address and parking info</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>What to Bring:</strong> List any required supplies or clothing</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> <strong>Realistic Timing:</strong> Allow enough time for activities</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Weather Plan:</strong> Consider rain dates or indoor alternatives</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Follow Up:</strong> Share results and photos after the event</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for form enhancements -->
+<script>
+    // Set minimum date to today
+    document.addEventListener('DOMContentLoaded', function() {
+        const dateInput = document.getElementById('date_time');
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        dateInput.min = now.toISOString().slice(0, 16);
+    });
+</script>
+{% endblock %}
