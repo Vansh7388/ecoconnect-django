@@ -205,3 +205,14 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Django Media Files (User Uploads)
+media/
+
+# Django Static Files (Production)
+staticfiles/
+static_root/
+
+# Django Secret Keys
+.env
+secrets.json
