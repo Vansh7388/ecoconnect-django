@@ -1,50 +1,57 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from django.http import HttpResponse, Http404
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
 from .forms import EventCreationForm, EventEditForm
 from .models import Event, EventCategory
 from django.db.models import Q
 
-def event_list(request):
-    events = Event.objects.all().order_by('date_time')
+class EventListView(ListView):
+    model = Event
+    template_name = 'events/event_list.html'
+    context_object_name = 'events'
     
-    # Handle search functionality
-    search_query = request.GET.get('search')
-    category_filter = request.GET.get('category')
-    date_filter = request.GET.get('date')
+    def get_queryset(self):
+        queryset = Event.objects.all().order_by('date_time')
+        
+        search_query = self.request.GET.get('search')
+        category_filter = self.request.GET.get('category')
+        date_filter = self.request.GET.get('date')
+        
+        if search_query:
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) | 
+                Q(description__icontains=search_query) |
+                Q(location__icontains=search_query)
+            )
+        
+        if category_filter:
+            queryset = queryset.filter(category__name__icontains=category_filter)
+        
+        if date_filter:
+            queryset = queryset.filter(date_time__date=date_filter)
+            
+        return queryset
     
-    if search_query:
-        events = events.filter(
-            Q(title__icontains=search_query) | 
-            Q(description__icontains=search_query) |
-            Q(location__icontains=search_query)
-        )
-    
-    if category_filter:
-        events = events.filter(category__name__icontains=category_filter)
-    
-    if date_filter:
-        events = events.filter(date_time__date=date_filter)
-    
-    # Get categories for the filter dropdown
-    categories = EventCategory.objects.all()
-    
-    context = {
-        'events': events,
-        'categories': categories,
-        'search_query': search_query,
-        'category_filter': category_filter,
-        'date_filter': date_filter,
-    }
-    
-    return render(request, 'events/event_list.html', context)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['categories'] = EventCategory.objects.all()
+        context['search_query'] = self.request.GET.get('search')
+        context['category_filter'] = self.request.GET.get('category')
+        context['date_filter'] = self.request.GET.get('date')
+        return context
 
-def event_detail(request, event_id):
-    event = get_object_or_404(Event, id=event_id)
-    # Prefetch photos for better performance
-    event = Event.objects.prefetch_related('photos__user').get(id=event_id)
-    return render(request, 'events/event_detail.html', {'event': event})
+class EventDetailView(DetailView):
+    model = Event
+    template_name = 'events/event_detail.html'
+    context_object_name = 'event'
+    pk_url_kwarg = 'event_id'
+    
+    def get_object(self):
+        return get_object_or_404(Event.objects.prefetch_related('photos__user'), id=self.kwargs['event_id'])
 
 @login_required
 def create_event(request):
@@ -52,7 +59,7 @@ def create_event(request):
         form = EventCreationForm(request.POST)
         if form.is_valid():
             event = form.save(commit=False)
-            event.organizer = request.user  # Set the current user as organizer
+            event.organizer = request.user
             event.save()
             messages.success(request, f'Event "{event.title}" created successfully!')
             return redirect('events:event_detail', event_id=event.id)
@@ -67,7 +74,6 @@ def create_event(request):
 def edit_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     
-    # Check if user is the organizer
     if request.user != event.organizer:
         messages.error(request, 'You can only edit events that you organized.')
         return redirect('events:event_detail', event_id=event.id)
@@ -89,7 +95,6 @@ def edit_event(request, event_id):
 def delete_event(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     
-    # Check if user is the organizer
     if request.user != event.organizer:
         messages.error(request, 'You can only delete events that you organized.')
         return redirect('events:event_detail', event_id=event.id)
@@ -100,5 +105,4 @@ def delete_event(request, event_id):
         messages.success(request, f'Event "{event_title}" has been deleted successfully.')
         return redirect('events:event_list')
     
-    # If not POST, redirect to detail page
     return redirect('events:event_detail', event_id=event.id)

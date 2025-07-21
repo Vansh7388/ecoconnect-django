@@ -27,7 +27,7 @@
                     </form>
                     <div class="text-center mt-3">
                         <p>Don't have an account? <a href="{% url 'users:register' %}" class="text-success">Register here</a></p>
-                        <a href="#" class="text-muted">Forgot Password?</a>
+                        <a href="{% url 'users:password_reset' %}" class="text-muted">Forgot Password?</a>
                     </div>
                 </div>
             </div>
