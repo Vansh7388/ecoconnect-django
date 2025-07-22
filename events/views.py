@@ -277,7 +277,9 @@ def edit_event(request, event_id):
     if request.method == 'POST':
         form = EventEditForm(request.POST, instance=event)
         if form.is_valid():
-            form.save()
+            event = form.save(commit=False)
+            event.save()
+            form.save_m2m()
             messages.success(request, f'Event "{event.title}" updated successfully!')
             return redirect('events:event_detail', event_id=event.id)
         else:

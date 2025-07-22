@@ -13,6 +13,7 @@ class Location(models.Model):
 class EventTag(models.Model):
     name = models.CharField(max_length=50, unique=True)
     description = models.CharField(max_length=200, blank=True)
+    color_code = models.CharField(max_length=7, default='#6c757d', help_text="Hex color code for the tag")
     
     def __str__(self):
         return self.name

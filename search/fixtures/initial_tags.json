@@ -4,7 +4,8 @@
     "pk": 1,
     "fields": {
       "name": "Outdoor",
-      "description": "Outdoor environmental activities and nature events"
+      "description": "Outdoor environmental activities and nature events",
+      "color_code": "#28a745"
     }
   },
   {
@@ -12,7 +13,8 @@
     "pk": 2,
     "fields": {
       "name": "Educational",
-      "description": "Educational workshops and awareness events"
+      "description": "Educational workshops and awareness events",
+      "color_code": "#007bff"
     }
   },
   {
@@ -20,7 +22,8 @@
     "pk": 3,
     "fields": {
       "name": "Community",
-      "description": "Community-driven environmental initiatives"
+      "description": "Community-driven environmental initiatives",
+      "color_code": "#fd7e14"
     }
   },
   {
@@ -28,7 +31,8 @@
     "pk": 4,
     "fields": {
       "name": "Volunteer",
-      "description": "Volunteer opportunities for environmental causes"
+      "description": "Volunteer opportunities for environmental causes",
+      "color_code": "#20c997"
     }
   },
   {
@@ -36,7 +40,8 @@
     "pk": 5,
     "fields": {
       "name": "Youth",
-      "description": "Youth-focused environmental programs"
+      "description": "Youth-focused environmental programs",
+      "color_code": "#ffc107"
     }
   },
   {
@@ -44,7 +49,8 @@
     "pk": 6,
     "fields": {
       "name": "Corporate",
-      "description": "Corporate environmental responsibility events"
+      "description": "Corporate environmental responsibility events",
+      "color_code": "#6c757d"
     }
   },
   {
@@ -52,7 +58,8 @@
     "pk": 7,
     "fields": {
       "name": "Seasonal",
-      "description": "Seasonal environmental activities"
+      "description": "Seasonal environmental activities",
+      "color_code": "#17a2b8"
     }
   },
   {
@@ -60,7 +67,8 @@
     "pk": 8,
     "fields": {
       "name": "Research",
-      "description": "Environmental research and citizen science"
+      "description": "Environmental research and citizen science",
+      "color_code": "#6f42c1"
     }
   }
 ]
