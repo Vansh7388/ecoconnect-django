@@ -102,24 +102,30 @@ def upload_photo(request, event_id=None):
                 'selected_event': selected_event
             })
         
-        # Handle file upload
-        if 'image' not in request.FILES:
-            messages.error(request, 'Please select an image to upload.')
-            return render(request, 'interaction/upload_photo.html', {
-                'user_events': user_events,
-                'selected_event': selected_event
-            })
-        
-        # Create photo upload
-        photo = PhotoUpload.objects.create(
-            event=event,
-            user=request.user,
-            image=request.FILES['image'],
-            caption=request.POST.get('caption', '')
-        )
-        
-        messages.success(request, f'Photo uploaded successfully for "{event.title}"!')
-        return redirect('interaction:dashboard')
+        # Handle file upload with form validation
+        form = PhotoUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                # Create photo upload
+                photo = form.save(commit=False)
+                photo.event = event
+                photo.user = request.user
+                photo.save()
+                
+                messages.success(request, f'Photo uploaded successfully for "{event.title}"!')
+                return redirect('interaction:dashboard')
+                
+            except Exception as e:
+                messages.error(request, f'Error uploading photo: {str(e)}')
+        else:
+            # Display form validation errors
+            for field, errors in form.errors.items():
+                for error in errors:
+                    if field == '__all__':
+                        messages.error(request, error)
+                    else:
+                        field_name = form.fields[field].label or field.title()
+                        messages.error(request, f'{field_name}: {error}')
     
     context = {
         'user_events': user_events,

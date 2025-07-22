@@ -1,0 +1,56 @@
+[
+  {
+    "model": "events.eventcategory",
+    "pk": 1,
+    "fields": {
+      "name": "Tree Planting",
+      "description": "Community tree planting events to increase green cover and combat climate change",
+      "color_code": "#28a745"
+    }
+  },
+  {
+    "model": "events.eventcategory",
+    "pk": 2,
+    "fields": {
+      "name": "Beach Cleanup",
+      "description": "Coastal and waterway cleanup activities to protect marine ecosystems",
+      "color_code": "#17a2b8"
+    }
+  },
+  {
+    "model": "events.eventcategory",
+    "pk": 3,
+    "fields": {
+      "name": "Recycling Drive",
+      "description": "Collection and proper disposal of recyclable materials",
+      "color_code": "#ffc107"
+    }
+  },
+  {
+    "model": "events.eventcategory",
+    "pk": 4,
+    "fields": {
+      "name": "Community Garden",
+      "description": "Creating and maintaining community gardens for sustainable food production",
+      "color_code": "#20c997"
+    }
+  },
+  {
+    "model": "events.eventcategory",
+    "pk": 5,
+    "fields": {
+      "name": "Workshop",
+      "description": "Educational workshops on environmental topics and sustainable practices",
+      "color_code": "#6f42c1"
+    }
+  },
+  {
+    "model": "events.eventcategory",
+    "pk": 6,
+    "fields": {
+      "name": "Wildlife Conservation",
+      "description": "Activities focused on protecting local wildlife and their habitats",
+      "color_code": "#fd7e14"
+    }
+  }
+]

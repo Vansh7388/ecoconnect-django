@@ -1,0 +1,47 @@
+[
+  {
+    "model": "search.location",
+    "pk": 1,
+    "fields": {
+      "name": "Oshawa",
+      "latitude": "43.8971",
+      "longitude": "-78.8658"
+    }
+  },
+  {
+    "model": "search.location",
+    "pk": 2,
+    "fields": {
+      "name": "Whitby",
+      "latitude": "43.8750",
+      "longitude": "-78.9428"
+    }
+  },
+  {
+    "model": "search.location",
+    "pk": 3,
+    "fields": {
+      "name": "Ajax",
+      "latitude": "43.8509",
+      "longitude": "-79.0204"
+    }
+  },
+  {
+    "model": "search.location",
+    "pk": 4,
+    "fields": {
+      "name": "Pickering",
+      "latitude": "43.8384",
+      "longitude": "-79.0868"
+    }
+  },
+  {
+    "model": "search.location",
+    "pk": 5,
+    "fields": {
+      "name": "Toronto",
+      "latitude": "43.6532",
+      "longitude": "-79.3832"
+    }
+  }
+]

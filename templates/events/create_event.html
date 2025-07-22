@@ -74,12 +74,9 @@
                             </label>
                             <select class="form-select" id="category" name="category" required>
                                 <option value="">Select a category...</option>
-                                <!-- These will be populated from database -->
-                                <option value="1">Tree Planting</option>
-                                <option value="2">Beach Cleanup</option>
-                                <option value="3">Workshop</option>
-                                <option value="4">Recycling Drive</option>
-                                <option value="5">Community Garden</option>
+                                {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
                             </select>
                         </div>
 

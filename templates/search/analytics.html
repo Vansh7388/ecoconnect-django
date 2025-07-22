@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard - EcoConnect{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-chart-bar text-success"></i> Analytics Dashboard</h2>
+            <p class="text-muted">Event and search statistics</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{% url 'events:event_list' %}" class="btn btn-outline-success">
+                <i class="fas fa-arrow-left"></i> Back to Events
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card card-eco text-center">
+                <div class="card-body">
+                    <i class="fas fa-calendar-check fa-3x text-success mb-2"></i>
+                    <h3 class="fw-bold text-success">{{ total_events }}</h3>
+                    <small class="text-muted">Total Events</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card card-eco text-center">
+                <div class="card-body">
+                    <i class="fas fa-clock fa-3x text-info mb-2"></i>
+                    <h3 class="fw-bold text-info">{{ upcoming_events }}</h3>
+                    <small class="text-muted">Upcoming Events</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card card-eco text-center">
+                <div class="card-body">
+                    <i class="fas fa-check-circle fa-3x text-warning mb-2"></i>
+                    <h3 class="fw-bold text-warning">{{ completed_events }}</h3>
+                    <small class="text-muted">Completed Events</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card card-eco text-center">
+                <div class="card-body">
+                    <i class="fas fa-percentage fa-3x text-secondary mb-2"></i>
+                    <h3 class="fw-bold text-secondary">
+                        {% if total_events > 0 %}
+                            {{ completed_events|floatformat:0 }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
+                    <small class="text-muted">Completion Rate</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Data -->
+    <div class="row">
+        <!-- Category Statistics -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-tags text-success"></i> Events by Category</h5>
+                </div>
+                <div class="card-body">
+                    {% for category in category_stats %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>{{ category.name }}</span>
+                        <div class="d-flex align-items-center">
+                            <div class="progress me-2" style="width: 100px;">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 50%">
+                                </div>
+                            </div>
+                            <span class="badge bg-secondary">{{ category.event_count }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No category data available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Searches -->
+        <div class="col-lg-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-search text-info"></i> Popular Search Terms</h5>
+                </div>
+                <div class="card-body">
+                    {% for search in popular_searches %}
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>"{{ search.search_query }}"</span>
+                        <span class="badge bg-info">{{ search.count }} search{{ search.count|pluralize:"es" }}</span>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No search data available.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    {% if recent_searches %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history text-warning"></i> Your Recent Searches</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Search Query</th>
+                                    <th>Results Found</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for search in recent_searches %}
+                                <tr>
+                                    <td>"{{ search.search_query }}"</td>
+                                    <td>{{ search.results_count }} result{{ search.results_count|pluralize }}</td>
+                                    <td>{{ search.search_date|date:"M d, Y g:i A" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

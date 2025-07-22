@@ -58,26 +58,43 @@
                         <span class="badge bg-success">{{ event.category.name }}</span>
                         <small class="text-muted">{{ event.date_time|date:"M d, Y" }}</small>
                     </div>
+                    {% if event.participant_count >= event.max_participants %}
+                        <div class="alert alert-warning alert-sm py-1 px-2 mb-2">
+                            <i class="fas fa-users"></i> <small>Event Full</small>
+                        </div>
+                    {% endif %}
                     <h5 class="card-title">{{ event.title }}</h5>
                     <p class="card-text">{{ event.description|truncatewords:20 }}</p>
                     <div class="mb-3">
                         <small class="text-muted">
                             <i class="fas fa-map-marker-alt"></i> {{ event.location }}<br>
                             <i class="fas fa-clock"></i> {{ event.date_time|date:"g:i A" }}<br>
-                            <i class="fas fa-users"></i> {{ event.max_participants }} max participants<br>
+                            <i class="fas fa-users"></i> {{ event.participant_count }}/{{ event.max_participants }} registered<br>
                             <i class="fas fa-user"></i> Organized by {{ event.organizer.first_name }} {{ event.organizer.last_name }}
                         </small>
                     </div>
-                    {% if user.is_authenticated %}
-                        <button class="btn btn-success btn-sm">
-                            <i class="fas fa-plus"></i> Join Event
-                        </button>
-                    {% else %}
-                        <a href="{% url 'users:login' %}" class="btn btn-outline-success btn-sm">
-                            Login to Join
-                        </a>
-                    {% endif %}
-                    <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-secondary btn-sm">View Details</a>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-secondary btn-sm flex-fill">View Details</a>
+                        {% if user.is_authenticated %}
+                            {% if event.id in user_participations %}
+                                <a href="{% url 'events:leave_event' event.id %}" class="btn btn-outline-danger btn-sm flex-fill" onclick="return confirm('Leave this event?')">
+                                    <i class="fas fa-minus"></i> Leave
+                                </a>
+                            {% elif event.participant_count >= event.max_participants %}
+                                <button class="btn btn-secondary btn-sm flex-fill" disabled>
+                                    <i class="fas fa-users"></i> Full
+                                </button>
+                            {% else %}
+                                <a href="{% url 'events:join_event' event.id %}" class="btn btn-success btn-sm flex-fill">
+                                    <i class="fas fa-plus"></i> Join
+                                </a>
+                            {% endif %}
+                        {% else %}
+                            <a href="{% url 'users:login' %}" class="btn btn-outline-success btn-sm flex-fill">
+                                Login to Join
+                            </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -103,4 +120,5 @@
         </div>
         {% endfor %}
     </div>
+</div>
 {% endblock %}

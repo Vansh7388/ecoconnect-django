@@ -47,10 +47,20 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'events:event_list' %}">Events</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'search:advanced_search' %}">
+                            <i class="fas fa-search"></i> Advanced Search
+                        </a>
+                    </li>
                     {% if user.is_authenticated %}
                         <li class="nav-item">
                             <a class="nav-link" href="{% url 'interaction:upload_photo' %}">
                                 <i class="fas fa-camera"></i> Upload Photos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'search:analytics' %}">
+                                <i class="fas fa-chart-bar"></i> Analytics
                             </a>
                         </li>
                     {% endif %}

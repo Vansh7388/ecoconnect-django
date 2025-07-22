@@ -2,12 +2,14 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.http import HttpResponse, Http404
+from django.http import HttpResponse, Http404, JsonResponse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from .forms import EventCreationForm, EventEditForm
 from .models import Event, EventCategory
-from django.db.models import Q
+from interaction.models import EventParticipation
+from django.db.models import Q, Count
+from django.utils import timezone
 
 class EventListView(ListView):
     model = Event
@@ -15,7 +17,9 @@ class EventListView(ListView):
     context_object_name = 'events'
     
     def get_queryset(self):
-        queryset = Event.objects.all().order_by('date_time')
+        queryset = Event.objects.annotate(
+            participant_count=Count('eventparticipation')
+        ).order_by('date_time')
         
         search_query = self.request.GET.get('search')
         category_filter = self.request.GET.get('category')
@@ -42,6 +46,16 @@ class EventListView(ListView):
         context['search_query'] = self.request.GET.get('search')
         context['category_filter'] = self.request.GET.get('category')
         context['date_filter'] = self.request.GET.get('date')
+        
+        # Add user participation status for each event
+        if self.request.user.is_authenticated:
+            user_participations = EventParticipation.objects.filter(
+                user=self.request.user
+            ).values_list('event_id', flat=True)
+            context['user_participations'] = list(user_participations)
+        else:
+            context['user_participations'] = []
+            
         return context
 
 class EventDetailView(DetailView):
@@ -51,7 +65,74 @@ class EventDetailView(DetailView):
     pk_url_kwarg = 'event_id'
     
     def get_object(self):
-        return get_object_or_404(Event.objects.prefetch_related('photos__user'), id=self.kwargs['event_id'])
+        return get_object_or_404(
+            Event.objects.prefetch_related('photos__user').annotate(
+                participant_count=Count('eventparticipation')
+            ), 
+            id=self.kwargs['event_id']
+        )
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        event = self.get_object()
+        
+        # Check if current user has joined this event
+        if self.request.user.is_authenticated:
+            context['user_joined'] = EventParticipation.objects.filter(
+                user=self.request.user, 
+                event=event
+            ).exists()
+        else:
+            context['user_joined'] = False
+            
+        # Get participants list
+        context['participants'] = EventParticipation.objects.filter(
+            event=event
+        ).select_related('user')[:10]  # Show first 10 participants
+        
+        # Check if event is full
+        context['is_full'] = event.participant_count >= event.max_participants
+        
+        return context
+
+@login_required
+def join_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Check if user already joined
+    if EventParticipation.objects.filter(user=request.user, event=event).exists():
+        messages.warning(request, 'You have already joined this event.')
+        return redirect('events:event_detail', event_id=event.id)
+    
+    # Check if event is full
+    current_participants = EventParticipation.objects.filter(event=event).count()
+    if current_participants >= event.max_participants:
+        messages.error(request, 'This event is full.')
+        return redirect('events:event_detail', event_id=event.id)
+    
+    # Check if event is in the past
+    if event.date_time <= timezone.now():
+        messages.error(request, 'Cannot join past events.')
+        return redirect('events:event_detail', event_id=event.id)
+    
+    # Join the event
+    EventParticipation.objects.create(user=request.user, event=event)
+    messages.success(request, f'You have successfully joined "{event.title}"!')
+    
+    return redirect('events:event_detail', event_id=event.id)
+
+@login_required
+def leave_event(request, event_id):
+    event = get_object_or_404(Event, id=event_id)
+    
+    try:
+        participation = EventParticipation.objects.get(user=request.user, event=event)
+        participation.delete()
+        messages.success(request, f'You have left "{event.title}".')
+    except EventParticipation.DoesNotExist:
+        messages.error(request, 'You are not registered for this event.')
+    
+    return redirect('events:event_detail', event_id=event.id)
 
 @login_required
 def create_event(request):
@@ -68,7 +149,13 @@ def create_event(request):
     else:
         form = EventCreationForm()
     
-    return render(request, 'events/create_event.html', {'form': form})
+    # Pass categories to template
+    context = {
+        'form': form,
+        'categories': EventCategory.objects.all()
+    }
+    
+    return render(request, 'events/create_event.html', context)
 
 @login_required
 def edit_event(request, event_id):
