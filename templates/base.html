@@ -45,11 +45,8 @@
                         <a class="nav-link" href="{% url 'search:home' %}">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'events:event_list' %}">Events</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'search:advanced_search' %}">
-                            <i class="fas fa-search"></i> Advanced Search
+                        <a class="nav-link" href="{% url 'events:event_list' %}">
+                            <i class="fas fa-search"></i> Find Events
                         </a>
                     </li>
                     {% if user.is_authenticated %}

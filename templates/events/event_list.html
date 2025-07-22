@@ -19,34 +19,131 @@
         </div>
     </div>
 
-    <!-- Search and Filter Bar -->
+    <!-- Advanced Search and Filter Section -->
     <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-search text-success"></i> Find Events</h5>
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+                    <i class="fas fa-filter"></i> Advanced Filters
+                </button>
+            </div>
+        </div>
         <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" class="form-control" name="search" placeholder="Search events..." value="{{ search_query }}">
+            <form method="get" class="mb-3">
+                <!-- Basic Search Row -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Keywords</label>
+                        <input type="text" class="form-control" name="search" 
+                               placeholder="Search events, locations..." value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" name="category">
+                            <option value="">All Categories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.name }}" {% if category_filter == category.name %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" class="form-control" name="date" value="{{ date_filter }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
                 </div>
-                <div class="col-md-3">
-                    <select class="form-select" name="category">
-                        <option value="">All Categories</option>
-                        {% for category in categories %}
-                            <option value="{{ category.name }}" {% if category_filter == category.name %}selected{% endif %}>
-                                {{ category.name }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <input type="date" class="form-control" name="date" value="{{ date_filter }}">
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-outline-success w-100">
-                        <i class="fas fa-search"></i> Search
-                    </button>
+
+                <!-- Advanced Filters (Collapsible) -->
+                <div class="collapse" id="advancedFilters">
+                    <hr>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Location</label>
+                            <input type="text" class="form-control" name="location" 
+                                   placeholder="City, Region..." value="{{ location_filter }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Date Range</label>
+                            <select class="form-select" name="date_range" onchange="toggleCustomDates()">
+                                <option value="" {% if not date_range_filter %}selected{% endif %}>Any Time</option>
+                                <option value="today" {% if date_range_filter == 'today' %}selected{% endif %}>Today</option>
+                                <option value="week" {% if date_range_filter == 'week' %}selected{% endif %}>This Week</option>
+                                <option value="month" {% if date_range_filter == 'month' %}selected{% endif %}>This Month</option>
+                                <option value="custom" {% if date_range_filter == 'custom' %}selected{% endif %}>Custom Range</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3" id="custom-dates" style="{% if date_range_filter != 'custom' %}display: none;{% endif %}">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" class="form-control" name="start_date" value="{{ start_date }}">
+                        </div>
+                        <div class="col-md-3" id="custom-dates-end" style="{% if date_range_filter != 'custom' %}display: none;{% endif %}">
+                            <label class="form-label">End Date</label>
+                            <input type="date" class="form-control" name="end_date" value="{{ end_date }}">
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label">Event Status</label>
+                            <select class="form-select" name="status">
+                                <option value="">All Status</option>
+                                <option value="upcoming" {% if status_filter == 'upcoming' %}selected{% endif %}>Upcoming</option>
+                                <option value="ongoing" {% if status_filter == 'ongoing' %}selected{% endif %}>Ongoing</option>
+                                <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Availability</label>
+                            <select class="form-select" name="availability">
+                                <option value="">All Events</option>
+                                <option value="available" {% if availability_filter == 'available' %}selected{% endif %}>Spots Available</option>
+                                <option value="full" {% if availability_filter == 'full' %}selected{% endif %}>Full Events</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Sort By</label>
+                            <select class="form-select" name="sort">
+                                <option value="date" {% if sort_filter == 'date' or not sort_filter %}selected{% endif %}>Date</option>
+                                <option value="title" {% if sort_filter == 'title' %}selected{% endif %}>Title</option>
+                                <option value="participants" {% if sort_filter == 'participants' %}selected{% endif %}>Participants</option>
+                                <option value="created" {% if sort_filter == 'created' %}selected{% endif %}>Recently Added</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success flex-fill">
+                                    <i class="fas fa-search"></i> Apply Filters
+                                </button>
+                                <a href="{% url 'events:event_list' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-times"></i> Clear
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- Search Results Summary -->
+    {% if search_query or category_filter or date_filter or location_filter or date_range_filter or status_filter or availability_filter %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> 
+        Found {{ events|length }} event{{ events|length|pluralize }} 
+        {% if search_query %}for "<strong>{{ search_query }}</strong>"{% endif %}
+        {% if category_filter %}in <strong>{{ category_filter }}</strong>{% endif %}
+        {% if location_filter %}near <strong>{{ location_filter }}</strong>{% endif %}
+        <a href="{% url 'events:event_list' %}" class="alert-link ms-2">Clear all filters</a>
+    </div>
+    {% endif %}
 
     <!-- Events Grid -->
     <div class="row">
@@ -64,13 +161,13 @@
                         </div>
                     {% endif %}
                     <h5 class="card-title">{{ event.title }}</h5>
-                    <p class="card-text">{{ event.description|truncatewords:20 }}</p>
+                    <p class="card-text">{{ event.description|truncatewords:15 }}</p>
                     <div class="mb-3">
                         <small class="text-muted">
-                            <i class="fas fa-map-marker-alt"></i> {{ event.location }}<br>
+                            <i class="fas fa-map-marker-alt"></i> {{ event.location|truncatechars:30 }}<br>
                             <i class="fas fa-clock"></i> {{ event.date_time|date:"g:i A" }}<br>
                             <i class="fas fa-users"></i> {{ event.participant_count }}/{{ event.max_participants }} registered<br>
-                            <i class="fas fa-user"></i> Organized by {{ event.organizer.first_name }} {{ event.organizer.last_name }}
+                            <i class="fas fa-user"></i> by {{ event.organizer.first_name }}
                         </small>
                     </div>
                     <div class="d-flex gap-2">
@@ -105,8 +202,8 @@
                 <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
                 <h4>No Events Found</h4>
                 <p class="text-muted">
-                    {% if search_query or category_filter or date_filter %}
-                        No events match your search criteria. Try adjusting your filters.
+                    {% if search_query or category_filter or date_filter or location_filter or date_range_filter or status_filter or availability_filter %}
+                        No events match your search criteria. Try adjusting your filters above.
                     {% else %}
                         No events have been created yet. Be the first to organize an environmental initiative!
                     {% endif %}
@@ -120,5 +217,48 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- Search Tips -->
+    {% if not events and not search_query and not category_filter %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h6><i class="fas fa-lightbulb text-warning"></i> Search Tips</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Use keywords to find specific events</li>
+                        <li><i class="fas fa-check text-success"></i> Filter by category for targeted results</li>
+                        <li><i class="fas fa-check text-success"></i> Use date filters to find upcoming events</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Search by location to find local events</li>
+                        <li><i class="fas fa-check text-success"></i> Check availability to find open events</li>
+                        <li><i class="fas fa-check text-success"></i> Sort results by your preference</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+
+<script>
+function toggleCustomDates() {
+    const dateRange = document.querySelector('select[name="date_range"]').value;
+    const customDates = document.getElementById('custom-dates');
+    const customDatesEnd = document.getElementById('custom-dates-end');
+    
+    if (dateRange === 'custom') {
+        customDates.style.display = 'block';
+        customDatesEnd.style.display = 'block';
+    } else {
+        customDates.style.display = 'none';
+        customDatesEnd.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}
