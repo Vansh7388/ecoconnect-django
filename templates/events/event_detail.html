@@ -21,17 +21,7 @@
                     <span class="badge bg-danger ms-2">FULL</span>
                 {% endif %}
             </div>
-            <!-- Event Tags -->
-            {% if event.tags.all %}
-            <div class="mb-3">
-                <small class="text-muted me-2">Tags:</small>
-                {% for tag in event.tags.all %}
-                    <span class="badge me-1" style="background-color: {{ tag.color_code }};" title="{{ tag.description }}">
-                        <i class="fas fa-tag"></i> {{ tag.name }}
-                    </span>
-                {% endfor %}
-            </div>
-            {% endif %}
+            
         </div>
         <div class="col-md-4 text-end">
             {% if user == event.organizer %}
