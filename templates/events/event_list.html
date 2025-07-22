@@ -67,8 +67,7 @@
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Location</label>
-                            <input type="text" class="form-control" name="location" 
-                                   placeholder="City, Region..." value="{{ location_filter }}">
+                            <input type="text" class="form-control" name="location" placeholder="City, Region..." value="{{ location_filter }}">
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Date Range</label>
@@ -80,11 +79,11 @@
                                 <option value="custom" {% if date_range_filter == 'custom' %}selected{% endif %}>Custom Range</option>
                             </select>
                         </div>
-                        <div class="col-md-3" id="custom-dates" style="{% if date_range_filter != 'custom' %}display: none;{% endif %}">
+                        <div class="col-md-3 custom-date-field" id="custom-dates">
                             <label class="form-label">Start Date</label>
                             <input type="date" class="form-control" name="start_date" value="{{ start_date }}">
                         </div>
-                        <div class="col-md-3" id="custom-dates-end" style="{% if date_range_filter != 'custom' %}display: none;{% endif %}">
+                        <div class="col-md-3 custom-date-field" id="custom-dates-end">
                             <label class="form-label">End Date</label>
                             <input type="date" class="form-control" name="end_date" value="{{ end_date }}">
                         </div>
@@ -247,17 +246,27 @@
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize visibility based on current filter
+    const dateRange = document.querySelector('select[name="date_range"]').value;
+    toggleCustomDates();
+    
+    // Add event listener for changes
+    document.querySelector('select[name="date_range"]').addEventListener('change', toggleCustomDates);
+});
+
 function toggleCustomDates() {
     const dateRange = document.querySelector('select[name="date_range"]').value;
-    const customDates = document.getElementById('custom-dates');
-    const customDatesEnd = document.getElementById('custom-dates-end');
+    const customDateFields = document.querySelectorAll('.custom-date-field');
     
     if (dateRange === 'custom') {
-        customDates.style.display = 'block';
-        customDatesEnd.style.display = 'block';
+        customDateFields.forEach(field => {
+            field.style.display = 'block';
+        });
     } else {
-        customDates.style.display = 'none';
-        customDatesEnd.style.display = 'none';
+        customDateFields.forEach(field => {
+            field.style.display = 'none';
+        });
     }
 }
 </script>
