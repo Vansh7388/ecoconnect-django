@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
+from search.models import Location
 
 class EventCategory(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -23,7 +24,8 @@ class Event(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     date_time = models.DateTimeField()
-    location = models.CharField(max_length=200)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, related_name='events')
+    address_details = models.CharField(max_length=200, blank=True, help_text="Specific address or landmark")
     organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
     category = models.ForeignKey(EventCategory, on_delete=models.CASCADE)
     max_participants = models.PositiveIntegerField(default=50)
@@ -32,6 +34,11 @@ class Event(models.Model):
     
     def __str__(self):
         return self.title
+    
+    def full_location(self):
+        if self.address_details:
+            return f"{self.address_details}, {self.location.name}"
+        return self.location.name
     
     class Meta:
         ordering = ['-date_time']

@@ -7,6 +7,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from .forms import EventCreationForm, EventEditForm
 from .models import Event, EventCategory
+from search.models import Location
 from interaction.models import EventParticipation
 from search.models import SearchHistory
 from django.db.models import Q, Count, Case, When, IntegerField, F
@@ -22,7 +23,7 @@ class EventListView(ListView):
     def get_queryset(self):
         queryset = Event.objects.annotate(
             participant_count=Count('eventparticipation')
-        ).select_related('category', 'organizer')
+        ).select_related('category', 'organizer', 'location')
         
         # Get search parameters
         search_query = self.request.GET.get('search', '').strip()
@@ -41,7 +42,8 @@ class EventListView(ListView):
             queryset = queryset.filter(
                 Q(title__icontains=search_query) | 
                 Q(description__icontains=search_query) |
-                Q(location__icontains=search_query) |
+                Q(address_details__icontains=search_query) |
+                Q(location__name__icontains=search_query) |
                 Q(organizer__first_name__icontains=search_query) |
                 Q(organizer__last_name__icontains=search_query)
             )
@@ -50,9 +52,9 @@ class EventListView(ListView):
         if category_filter:
             queryset = queryset.filter(category__name__iexact=category_filter)
         
-        # Location filter
+        # Location filter - now using Location model
         if location_filter:
-            queryset = queryset.filter(location__icontains=location_filter)
+            queryset = queryset.filter(location__name__iexact=location_filter)
         
         # Specific date filter
         if date_filter:
@@ -129,8 +131,9 @@ class EventListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Categories for dropdown
+        # Categories and locations for dropdown
         context['categories'] = EventCategory.objects.all()
+        context['locations'] = Location.objects.all()
         
         # Pass all filter values back to template
         context['search_query'] = self.request.GET.get('search', '')
@@ -163,7 +166,7 @@ class EventDetailView(DetailView):
     
     def get_object(self):
         return get_object_or_404(
-            Event.objects.prefetch_related('photos__user').annotate(
+            Event.objects.prefetch_related('photos__user').select_related('location', 'category', 'organizer').annotate(
                 participant_count=Count('eventparticipation')
             ), 
             id=self.kwargs['event_id']
@@ -246,10 +249,11 @@ def create_event(request):
     else:
         form = EventCreationForm()
     
-    # Pass categories to template
+    # Pass categories and locations to template
     context = {
         'form': form,
-        'categories': EventCategory.objects.all()
+        'categories': EventCategory.objects.all(),
+        'locations': Location.objects.all()
     }
     
     return render(request, 'events/create_event.html', context)
@@ -273,7 +277,13 @@ def edit_event(request, event_id):
     else:
         form = EventEditForm(instance=event)
     
-    return render(request, 'events/edit_event.html', {'form': form, 'event': event})
+    context = {
+        'form': form, 
+        'event': event,
+        'locations': Location.objects.all()
+    }
+    
+    return render(request, 'events/edit_event.html', context)
 
 @login_required
 def delete_event(request, event_id):

@@ -73,13 +73,30 @@
                             </div>
                         </div>
 
-                        <!-- Location -->
-                        <div class="mb-3">
-                            <label for="location" class="form-label">
-                                <i class="fas fa-map-marker-alt text-warning"></i> Location *
-                            </label>
-                            <input type="text" class="form-control" id="location" name="location" 
-                                   value="{{ form.location.value|default:event.location }}" required>
+                        <!-- Location Fields -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">
+                                    <i class="fas fa-map-marker-alt text-warning"></i> Location *
+                                </label>
+                                <select class="form-select" id="location" name="location" required>
+                                    <option value="">Select a location...</option>
+                                    {% for location in locations %}
+                                        <option value="{{ location.id }}" {% if location.id == event.location.id %}selected{% endif %}>
+                                            {{ location.name }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="address_details" class="form-label">
+                                    <i class="fas fa-map-pin text-warning"></i> Specific Address (Optional)
+                                </label>
+                                <input type="text" class="form-control" id="address_details" name="address_details" 
+                                       value="{{ form.address_details.value|default:event.address_details }}"
+                                       placeholder="Street address, landmark, etc.">
+                                <small class="form-text text-muted">e.g., "123 Main St" or "Near the park entrance"</small>
+                            </div>
                         </div>
 
                         <!-- Status -->
@@ -126,6 +143,7 @@
                         <div class="col-md-6">
                             <p><strong>Created:</strong> {{ event.created_at|date:"M d, Y g:i A" }}</p>
                             <p><strong>Category:</strong> {{ event.category.name }}</p>
+                            <p><strong>Current Location:</strong> {{ event.full_location }}</p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Current Status:</strong> 
@@ -134,6 +152,7 @@
                                 </span>
                             </p>
                             <p><strong>Organizer:</strong> {{ event.organizer.first_name }} {{ event.organizer.last_name }}</p>
+                            <p><strong>Current Participants:</strong> {{ event.eventparticipation_set.count }}/{{ event.max_participants }}</p>
                         </div>
                     </div>
                 </div>

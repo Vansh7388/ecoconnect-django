@@ -33,18 +33,29 @@
             <form method="get" class="mb-3">
                 <!-- Basic Search Row -->
                 <div class="row g-3 mb-3">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label">Keywords</label>
                         <input type="text" class="form-control" name="search" 
                                placeholder="Search events, locations..." value="{{ search_query }}">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Category</label>
                         <select class="form-select" name="category">
                             <option value="">All Categories</option>
                             {% for category in categories %}
                                 <option value="{{ category.name }}" {% if category_filter == category.name %}selected{% endif %}>
                                     {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Location</label>
+                        <select class="form-select" name="location">
+                            <option value="">All Locations</option>
+                            {% for location in locations %}
+                                <option value="{{ location.name }}" {% if location_filter == location.name %}selected{% endif %}>
+                                    {{ location.name }}
                                 </option>
                             {% endfor %}
                         </select>
@@ -66,10 +77,6 @@
                     <hr>
                     <div class="row g-3">
                         <div class="col-md-3">
-                            <label class="form-label">Location</label>
-                            <input type="text" class="form-control" name="location" placeholder="City, Region..." value="{{ location_filter }}">
-                        </div>
-                        <div class="col-md-3">
                             <label class="form-label">Date Range</label>
                             <select class="form-select" name="date_range" onchange="toggleCustomDates()">
                                 <option value="" {% if not date_range_filter %}selected{% endif %}>Any Time</option>
@@ -87,8 +94,6 @@
                             <label class="form-label">End Date</label>
                             <input type="date" class="form-control" name="end_date" value="{{ end_date }}">
                         </div>
-                    </div>
-                    <div class="row g-3 mt-2">
                         <div class="col-md-3">
                             <label class="form-label">Event Status</label>
                             <select class="form-select" name="status">
@@ -98,6 +103,8 @@
                                 <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
                             </select>
                         </div>
+                    </div>
+                    <div class="row g-3 mt-2">
                         <div class="col-md-3">
                             <label class="form-label">Availability</label>
                             <select class="form-select" name="availability">
@@ -115,7 +122,7 @@
                                 <option value="created" {% if sort_filter == 'created' %}selected{% endif %}>Recently Added</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-6">
                             <label class="form-label">&nbsp;</label>
                             <div class="d-flex gap-2">
                                 <button type="submit" class="btn btn-success flex-fill">
@@ -139,7 +146,7 @@
         Found {{ events|length }} event{{ events|length|pluralize }} 
         {% if search_query %}for "<strong>{{ search_query }}</strong>"{% endif %}
         {% if category_filter %}in <strong>{{ category_filter }}</strong>{% endif %}
-        {% if location_filter %}near <strong>{{ location_filter }}</strong>{% endif %}
+        {% if location_filter %}in <strong>{{ location_filter }}</strong>{% endif %}
         <a href="{% url 'events:event_list' %}" class="alert-link ms-2">Clear all filters</a>
     </div>
     {% endif %}
@@ -163,7 +170,7 @@
                     <p class="card-text">{{ event.description|truncatewords:15 }}</p>
                     <div class="mb-3">
                         <small class="text-muted">
-                            <i class="fas fa-map-marker-alt"></i> {{ event.location|truncatechars:30 }}<br>
+                            <i class="fas fa-map-marker-alt"></i> {{ event.full_location|truncatechars:30 }}<br>
                             <i class="fas fa-clock"></i> {{ event.date_time|date:"g:i A" }}<br>
                             <i class="fas fa-users"></i> {{ event.participant_count }}/{{ event.max_participants }} registered<br>
                             <i class="fas fa-user"></i> by {{ event.organizer.first_name }}

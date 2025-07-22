@@ -1,17 +1,19 @@
 from django import forms
 from .models import Event, EventCategory
+from search.models import Location
 from django.utils import timezone
 from datetime import timedelta
 
 class EventCreationForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ('title', 'description', 'date_time', 'location', 'category', 'max_participants')
+        fields = ('title', 'description', 'date_time', 'location', 'address_details', 'category', 'max_participants')
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Event title...', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 5, 'placeholder': 'Describe your environmental event...', 'class': 'form-control'}),
             'date_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'location': forms.TextInput(attrs={'placeholder': 'Event location address...', 'class': 'form-control'}),
+            'location': forms.Select(attrs={'class': 'form-select'}),
+            'address_details': forms.TextInput(attrs={'placeholder': 'Specific address or landmark...', 'class': 'form-control'}),
             'max_participants': forms.NumberInput(attrs={'min': 1, 'max': 1000, 'value': 50, 'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
         }
@@ -19,6 +21,7 @@ class EventCreationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['category'].empty_label = "Select Category"
+        self.fields['location'].empty_label = "Select Location"
         # Set minimum date dynamically
         now = timezone.now()
         min_datetime = now.strftime('%Y-%m-%dT%H:%M')
@@ -51,21 +54,22 @@ class EventCreationForm(forms.ModelForm):
             raise forms.ValidationError("Event description must be at least 20 characters long.")
         return description.strip()
     
-    def clean_location(self):
-        location = self.cleaned_data['location']
-        if len(location.strip()) < 5:
-            raise forms.ValidationError("Location must be at least 5 characters long.")
-        return location.strip()
+    def clean_address_details(self):
+        address_details = self.cleaned_data.get('address_details', '')
+        if address_details and len(address_details.strip()) < 5:
+            raise forms.ValidationError("Address details must be at least 5 characters long.")
+        return address_details.strip() if address_details else ''
 
 class EventEditForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ('title', 'description', 'date_time', 'location', 'max_participants', 'status')
+        fields = ('title', 'description', 'date_time', 'location', 'address_details', 'max_participants', 'status')
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Event title...', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 5, 'class': 'form-control'}),
             'date_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
-            'location': forms.TextInput(attrs={'placeholder': 'Event location address...', 'class': 'form-control'}),
+            'location': forms.Select(attrs={'class': 'form-select'}),
+            'address_details': forms.TextInput(attrs={'placeholder': 'Specific address or landmark...', 'class': 'form-control'}),
             'max_participants': forms.NumberInput(attrs={'min': 1, 'max': 1000, 'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
         }
@@ -105,10 +109,11 @@ class EventSearchForm(forms.Form):
         empty_label="All Categories",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
-    location = forms.CharField(
-        max_length=100, 
+    location = forms.ModelChoiceField(
+        queryset=Location.objects.all(), 
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Location...', 'class': 'form-control'})
+        empty_label="All Locations",
+        widget=forms.Select(attrs={'class': 'form-select'})
     )
     date_from = forms.DateField(
         required=False, 

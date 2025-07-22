@@ -57,14 +57,27 @@
                             </div>
                         </div>
 
-                        <!-- Location -->
-                        <div class="mb-3">
-                            <label for="location" class="form-label">
-                                <i class="fas fa-map-marker-alt text-success"></i> Location *
-                            </label>
-                            <input type="text" class="form-control" id="location" name="location" 
-                                   placeholder="Full address or landmark (e.g., 123 Main St, Oshawa, ON)" required>
-                            <small class="form-text text-muted">Be specific so participants can find the location easily</small>
+                        <!-- Location Fields -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">
+                                    <i class="fas fa-map-marker-alt text-success"></i> Location *
+                                </label>
+                                <select class="form-select" id="location" name="location" required>
+                                    <option value="">Select a location...</option>
+                                    {% for location in locations %}
+                                        <option value="{{ location.id }}">{{ location.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="address_details" class="form-label">
+                                    <i class="fas fa-map-pin text-success"></i> Specific Address (Optional)
+                                </label>
+                                <input type="text" class="form-control" id="address_details" name="address_details" 
+                                       placeholder="Street address, landmark, etc.">
+                                <small class="form-text text-muted">e.g., "123 Main St" or "Near the park entrance"</small>
+                            </div>
                         </div>
 
                         <!-- Category -->
