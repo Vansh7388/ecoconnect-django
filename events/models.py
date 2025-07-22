@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
-from search.models import Location
+from search.models import Location, EventTag
 
 class EventCategory(models.Model):
     name = models.CharField(max_length=50, unique=True)
@@ -28,6 +28,7 @@ class Event(models.Model):
     address_details = models.CharField(max_length=200, blank=True, help_text="Specific address or landmark")
     organizer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organized_events')
     category = models.ForeignKey(EventCategory, on_delete=models.CASCADE)
+    tags = models.ManyToManyField(EventTag, blank=True, help_text="Select relevant tags for this event")
     max_participants = models.PositiveIntegerField(default=50)
     created_at = models.DateTimeField(default=timezone.now)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='upcoming')
@@ -39,6 +40,10 @@ class Event(models.Model):
         if self.address_details:
             return f"{self.address_details}, {self.location.name}"
         return self.location.name
+    
+    def get_tags_list(self):
+        """Return a list of tag names for this event"""
+        return list(self.tags.values_list('name', flat=True))
     
     class Meta:
         ordering = ['-date_time']

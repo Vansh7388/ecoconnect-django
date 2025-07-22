@@ -75,6 +75,32 @@
                 <!-- Advanced Filters (Collapsible) -->
                 <div class="collapse" id="advancedFilters">
                     <hr>
+                    <!-- Event Tags Filter -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <label class="form-label">
+                                <i class="fas fa-tags text-success"></i> Filter by Tags
+                            </label>
+                            <small class="form-text text-muted d-block mb-2">Select tags to filter events</small>
+                            <div class="row">
+                                {% for tag in tags %}
+                                <div class="col-md-3 col-sm-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="tags" value="{{ tag.id }}" id="tag_filter_{{ tag.id }}"
+                                               {% if tag.id|stringformat:"s" in tags_filter %}checked{% endif %}>
+                                        <label class="form-check-label" for="tag_filter_{{ tag.id }}">
+                                            <span class="badge" style="background-color: {{ tag.color_code }};">
+                                                {{ tag.name }}
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="row g-3">
                         <div class="col-md-3">
                             <label class="form-label">Date Range</label>
@@ -140,13 +166,23 @@
     </div>
 
     <!-- Search Results Summary -->
-    {% if search_query or category_filter or date_filter or location_filter or date_range_filter or status_filter or availability_filter %}
+    {% if search_query or category_filter or date_filter or location_filter or date_range_filter or status_filter or availability_filter or tags_filter %}
     <div class="alert alert-info">
         <i class="fas fa-info-circle"></i> 
         Found {{ paginator.count }} event{{ paginator.count|pluralize }} 
         {% if search_query %}for "<strong>{{ search_query }}</strong>"{% endif %}
         {% if category_filter %}in <strong>{{ category_filter }}</strong>{% endif %}
         {% if location_filter %}in <strong>{{ location_filter }}</strong>{% endif %}
+        {% if tags_filter %}
+            with tags: 
+            {% for tag_id in tags_filter %}
+                {% for tag in tags %}
+                    {% if tag.id|stringformat:"s" == tag_id %}
+                        <span class="badge" style="background-color: {{ tag.color_code }};">{{ tag.name }}</span>
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+        {% endif %}
         <a href="{% url 'events:event_list' %}" class="alert-link ms-2">Clear all filters</a>
     </div>
     {% endif %}
@@ -168,6 +204,21 @@
                     {% endif %}
                     <h5 class="card-title">{{ event.title }}</h5>
                     <p class="card-text">{{ event.description|truncatewords:15 }}</p>
+                    
+                    <!-- Event Tags Display -->
+                    {% if event.tags.all %}
+                    <div class="mb-2">
+                        {% for tag in event.tags.all|slice:":3" %}
+                            <span class="badge badge-sm me-1" style="background-color: {{ tag.color_code }}; font-size: 0.7em;">
+                                {{ tag.name }}
+                            </span>
+                        {% endfor %}
+                        {% if event.tags.count > 3 %}
+                            <small class="text-muted">+{{ event.tags.count|add:"-3" }} more</small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
                     <div class="mb-3">
                         <small class="text-muted">
                             <i class="fas fa-map-marker-alt"></i> {{ event.full_location|truncatechars:30 }}<br>
@@ -208,7 +259,7 @@
                 <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
                 <h4>No Events Found</h4>
                 <p class="text-muted">
-                    {% if search_query or category_filter or date_filter or location_filter or date_range_filter or status_filter or availability_filter %}
+                    {% if search_query or category_filter or date_filter or location_filter or date_range_filter or status_filter or availability_filter or tags_filter %}
                         No events match your search criteria. Try adjusting your filters above.
                     {% else %}
                         No events have been created yet. Be the first to organize an environmental initiative!
@@ -306,6 +357,24 @@
     </div>
     {% endif %}
 
+    <!-- Popular Tags Section -->
+    {% if tags and not search_query %}
+    <div class="card mt-4">
+        <div class="card-header">
+            <h6><i class="fas fa-fire text-danger"></i> Popular Event Tags</h6>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap gap-2">
+                {% for tag in tags %}
+                    <a href="?tags={{ tag.id }}" class="badge text-decoration-none" style="background-color: {{ tag.color_code }};">
+                        <i class="fas fa-tag"></i> {{ tag.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Search Tips -->
     {% if not events and not search_query and not category_filter %}
     <div class="card mt-4">
@@ -319,6 +388,7 @@
                         <li><i class="fas fa-check text-success"></i> Use keywords to find specific events</li>
                         <li><i class="fas fa-check text-success"></i> Filter by category for targeted results</li>
                         <li><i class="fas fa-check text-success"></i> Use date filters to find upcoming events</li>
+                        <li><i class="fas fa-check text-success"></i> Filter by tags for specific interests</li>
                     </ul>
                 </div>
                 <div class="col-md-6">
@@ -326,6 +396,7 @@
                         <li><i class="fas fa-check text-success"></i> Search by location to find local events</li>
                         <li><i class="fas fa-check text-success"></i> Check availability to find open events</li>
                         <li><i class="fas fa-check text-success"></i> Sort results by your preference</li>
+                        <li><i class="fas fa-check text-success"></i> Combine multiple filters for precise results</li>
                     </ul>
                 </div>
             </div>

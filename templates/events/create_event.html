@@ -93,6 +93,32 @@
                             </select>
                         </div>
 
+                        <!-- Event Tags -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-tags text-success"></i> Event Tags (Optional)
+                            </label>
+                            <small class="form-text text-muted d-block mb-2">Select all relevant tags for better discoverability</small>
+                            <div class="row">
+                                {% for tag in tags %}
+                                <div class="col-md-4 col-sm-6 mb-2">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="tags" value="{{ tag.id }}" id="tag_{{ tag.id }}">
+                                        <label class="form-check-label" for="tag_{{ tag.id }}">
+                                            <span class="badge bg-secondary">
+                                                {{ tag.name }}
+                                            </span>
+                                            {% if tag.description %}
+                                                <small class="text-muted d-block">{{ tag.description }}</small>
+                                            {% endif %}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
                         <!-- Action Buttons -->
                         <div class="row">
                             <div class="col-md-6 mb-2">
@@ -128,9 +154,27 @@
                             <ul class="list-unstyled">
                                 <li><i class="fas fa-check text-success"></i> <strong>Realistic Timing:</strong> Allow enough time for activities</li>
                                 <li><i class="fas fa-check text-success"></i> <strong>Weather Plan:</strong> Consider rain dates or indoor alternatives</li>
-                                <li><i class="fas fa-check text-success"></i> <strong>Follow Up:</strong> Share results and photos after the event</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Use Tags:</strong> Add relevant tags for better discoverability</li>
                             </ul>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tag Guide -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-info-circle text-info"></i> Tag Selection Guide</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">Choose tags that best describe your event:</p>
+                    <div class="row">
+                        {% for tag in tags %}
+                        <div class="col-md-6 mb-2">
+                            <span class="badge bg-secondary me-2">{{ tag.name }}</span>
+                            <small class="text-muted">{{ tag.description }}</small>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
             </div>

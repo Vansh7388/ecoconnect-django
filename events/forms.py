@@ -1,13 +1,13 @@
 from django import forms
 from .models import Event, EventCategory
-from search.models import Location
+from search.models import Location, EventTag
 from django.utils import timezone
 from datetime import timedelta
 
 class EventCreationForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ('title', 'description', 'date_time', 'location', 'address_details', 'category', 'max_participants')
+        fields = ('title', 'description', 'date_time', 'location', 'address_details', 'category', 'tags', 'max_participants')
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Event title...', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 5, 'placeholder': 'Describe your environmental event...', 'class': 'form-control'}),
@@ -16,12 +16,15 @@ class EventCreationForm(forms.ModelForm):
             'address_details': forms.TextInput(attrs={'placeholder': 'Specific address or landmark...', 'class': 'form-control'}),
             'max_participants': forms.NumberInput(attrs={'min': 1, 'max': 1000, 'value': 50, 'class': 'form-control'}),
             'category': forms.Select(attrs={'class': 'form-select'}),
+            'tags': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['category'].empty_label = "Select Category"
         self.fields['location'].empty_label = "Select Location"
+        self.fields['tags'].queryset = EventTag.objects.all().order_by('name')
+        self.fields['tags'].help_text = "Select all relevant tags for this event"
         # Set minimum date dynamically
         now = timezone.now()
         min_datetime = now.strftime('%Y-%m-%dT%H:%M')
@@ -63,7 +66,7 @@ class EventCreationForm(forms.ModelForm):
 class EventEditForm(forms.ModelForm):
     class Meta:
         model = Event
-        fields = ('title', 'description', 'date_time', 'location', 'address_details', 'max_participants', 'status')
+        fields = ('title', 'description', 'date_time', 'location', 'address_details', 'tags', 'max_participants', 'status')
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Event title...', 'class': 'form-control'}),
             'description': forms.Textarea(attrs={'rows': 5, 'class': 'form-control'}),
@@ -72,7 +75,13 @@ class EventEditForm(forms.ModelForm):
             'address_details': forms.TextInput(attrs={'placeholder': 'Specific address or landmark...', 'class': 'form-control'}),
             'max_participants': forms.NumberInput(attrs={'min': 1, 'max': 1000, 'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-select'}),
+            'tags': forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tags'].queryset = EventTag.objects.all().order_by('name')
+        self.fields['tags'].help_text = "Update tags for this event"
     
     def clean_date_time(self):
         date_time = self.cleaned_data['date_time']
@@ -109,6 +118,11 @@ class EventSearchForm(forms.Form):
         empty_label="All Categories",
         widget=forms.Select(attrs={'class': 'form-select'})
     )
+    tags = forms.ModelMultipleChoiceField(
+        queryset=EventTag.objects.all(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'form-check-input'})
+    )
     location = forms.ModelChoiceField(
         queryset=Location.objects.all(), 
         required=False,
@@ -123,6 +137,10 @@ class EventSearchForm(forms.Form):
         required=False, 
         widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
     )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['tags'].help_text = "Filter by specific tags"
     
     def clean(self):
         cleaned_data = super().clean()

@@ -1,0 +1,66 @@
+[
+  {
+    "model": "search.eventtag",
+    "pk": 1,
+    "fields": {
+      "name": "Outdoor",
+      "description": "Outdoor environmental activities and nature events"
+    }
+  },
+  {
+    "model": "search.eventtag",
+    "pk": 2,
+    "fields": {
+      "name": "Educational",
+      "description": "Educational workshops and awareness events"
+    }
+  },
+  {
+    "model": "search.eventtag",
+    "pk": 3,
+    "fields": {
+      "name": "Community",
+      "description": "Community-driven environmental initiatives"
+    }
+  },
+  {
+    "model": "search.eventtag",
+    "pk": 4,
+    "fields": {
+      "name": "Volunteer",
+      "description": "Volunteer opportunities for environmental causes"
+    }
+  },
+  {
+    "model": "search.eventtag",
+    "pk": 5,
+    "fields": {
+      "name": "Youth",
+      "description": "Youth-focused environmental programs"
+    }
+  },
+  {
+    "model": "search.eventtag",
+    "pk": 6,
+    "fields": {
+      "name": "Corporate",
+      "description": "Corporate environmental responsibility events"
+    }
+  },
+  {
+    "model": "search.eventtag",
+    "pk": 7,
+    "fields": {
+      "name": "Seasonal",
+      "description": "Seasonal environmental activities"
+    }
+  },
+  {
+    "model": "search.eventtag",
+    "pk": 8,
+    "fields": {
+      "name": "Research",
+      "description": "Environmental research and citizen science"
+    }
+  }
+]

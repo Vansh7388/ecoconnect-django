@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Database Population Script for EcoConnect - FIXED VERSION
+Database Population Script for EcoConnect - WITH EVENTTAGS
 Run this script from the project root directory: python populate_database.py
 """
 
@@ -20,7 +20,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 from users.models import UserProfile
 from events.models import Event, EventCategory
-from search.models import Location, SearchHistory
+from search.models import Location, SearchHistory, EventTag  # Added EventTag
 from interaction.models import EventParticipation, UserHistory
 
 def clear_existing_data():
@@ -113,18 +113,95 @@ def create_users():
     
     return created_users
 
-def create_events_for_each_user():
-    """Create EXACTLY 4 events per user"""
+def get_tags_for_event(event_title, category_name):
+    """Get appropriate tags for an event based on its title and category"""
+    tags = []
     
-    # Get categories and locations
+    # Get all available tags
+    all_tags = {tag.name: tag for tag in EventTag.objects.all()}
+    
+    title_lower = event_title.lower()
+    category_lower = category_name.lower()
+    
+    # Educational events
+    if any(word in title_lower for word in ['workshop', 'learn', 'training', 'analytics', 'data']):
+        tags.append(all_tags.get('Educational'))
+    
+    # Outdoor events  
+    if any(word in title_lower for word in ['tree', 'planting', 'beach', 'cleanup', 'outdoor', 'garden']):
+        tags.append(all_tags.get('Outdoor'))
+    
+    # Community events
+    if any(word in title_lower for word in ['community', 'festival', 'large scale', 'coordination']):
+        tags.append(all_tags.get('Community'))
+    
+    # Volunteer opportunities
+    if any(word in title_lower for word in ['join', 'help', 'volunteer', 'drive', 'cleanup']):
+        tags.append(all_tags.get('Volunteer'))
+    
+    # Corporate/Professional
+    if any(word in title_lower for word in ['corporate', 'business', 'professional', 'secure', 'digital']):
+        tags.append(all_tags.get('Corporate'))
+    
+    # Research/Technical
+    if any(word in title_lower for word in ['data', 'analytics', 'gps', 'technology', 'documentation', 'media']):
+        tags.append(all_tags.get('Research'))
+    
+    # Seasonal (if mentions specific timing)
+    if any(word in title_lower for word in ['winter', 'summer', 'spring', 'fall', 'seasonal']):
+        tags.append(all_tags.get('Seasonal'))
+    
+    # Youth focused (if mentions youth, family, etc)
+    if any(word in title_lower for word in ['youth', 'student', 'family', 'kids']):
+        tags.append(all_tags.get('Youth'))
+    
+    # Remove None values and ensure we have at least 1-3 tags
+    tags = [tag for tag in tags if tag is not None]
+    
+    # If no specific tags matched, add some based on category
+    if not tags:
+        if 'workshop' in category_lower:
+            tags.append(all_tags.get('Educational'))
+        elif 'tree' in category_lower:
+            tags.extend([all_tags.get('Outdoor'), all_tags.get('Volunteer')])
+        elif 'beach' in category_lower:
+            tags.extend([all_tags.get('Outdoor'), all_tags.get('Community')])
+        elif 'recycling' in category_lower:
+            tags.extend([all_tags.get('Community'), all_tags.get('Volunteer')])
+        elif 'garden' in category_lower:
+            tags.extend([all_tags.get('Outdoor'), all_tags.get('Community')])
+        elif 'wildlife' in category_lower:
+            tags.extend([all_tags.get('Outdoor'), all_tags.get('Research')])
+    
+    # Ensure we have 1-3 tags max and remove duplicates
+    tags = list(set([tag for tag in tags if tag is not None]))
+    if len(tags) > 3:
+        tags = random.sample(tags, 3)
+    elif len(tags) == 0:
+        # Default fallback
+        tags = [all_tags.get('Community')]
+    
+    return tags
+
+def create_events_for_each_user():
+    """Create EXACTLY 4 events per user with EventTags"""
+    
+    # Get categories, locations, and tags
     categories = list(EventCategory.objects.all())
     locations = list(Location.objects.all())
+    available_tags = list(EventTag.objects.all())
     
     if not categories or not locations:
         print("❌ Error: Make sure to load fixtures first!")
         print("Run: python manage.py loaddata events/fixtures/initial_categories.json")
         print("Run: python manage.py loaddata search/fixtures/initial_locations.json")
+        print("Run: python manage.py loaddata search/fixtures/initial_tags.json")
         return []
+    
+    if not available_tags:
+        print("⚠️  Warning: No EventTags found! Events will be created without tags.")
+    else:
+        print(f"🏷️  Found {len(available_tags)} EventTags: {[tag.name for tag in available_tags]}")
     
     # Get users by username to ensure correct assignment
     vansh = User.objects.get(username='vansh_patel')
@@ -163,8 +240,15 @@ def create_events_for_each_user():
     
     for i, event_data in enumerate(vansh_events):
         event = create_single_event(vansh, event_data, i, categories, locations)
+        # Add tags to event
+        if available_tags:
+            tags_for_event = get_tags_for_event(event.title, event.category.name)
+            event.tags.set(tags_for_event)
+            tag_names = [tag.name for tag in tags_for_event]
+            print(f"  ✅ {event.title} ({event.status}) - Tags: {tag_names}")
+        else:
+            print(f"  ✅ {event.title} ({event.status})")
         created_events.append(event)
-        print(f"  ✅ {event.title} ({event.status})")
     
     # RAJ'S 4 EVENTS  
     print(f"\n🎯 Creating 4 events for {raj.first_name} {raj.last_name}:")
@@ -193,8 +277,15 @@ def create_events_for_each_user():
     
     for i, event_data in enumerate(raj_events):
         event = create_single_event(raj, event_data, i, categories, locations)
+        # Add tags to event
+        if available_tags:
+            tags_for_event = get_tags_for_event(event.title, event.category.name)
+            event.tags.set(tags_for_event)
+            tag_names = [tag.name for tag in tags_for_event]
+            print(f"  ✅ {event.title} ({event.status}) - Tags: {tag_names}")
+        else:
+            print(f"  ✅ {event.title} ({event.status})")
         created_events.append(event)
-        print(f"  ✅ {event.title} ({event.status})")
     
     # KIRTAN'S 4 EVENTS
     print(f"\n🎯 Creating 4 events for {kirtan.first_name} {kirtan.last_name}:")
@@ -223,8 +314,15 @@ def create_events_for_each_user():
     
     for i, event_data in enumerate(kirtan_events):
         event = create_single_event(kirtan, event_data, i, categories, locations)
+        # Add tags to event
+        if available_tags:
+            tags_for_event = get_tags_for_event(event.title, event.category.name)
+            event.tags.set(tags_for_event)
+            tag_names = [tag.name for tag in tags_for_event]
+            print(f"  ✅ {event.title} ({event.status}) - Tags: {tag_names}")
+        else:
+            print(f"  ✅ {event.title} ({event.status})")
         created_events.append(event)
-        print(f"  ✅ {event.title} ({event.status})")
     
     # DHRUV'S 4 EVENTS
     print(f"\n🎯 Creating 4 events for {dhruv.first_name} {dhruv.last_name}:")
@@ -253,8 +351,15 @@ def create_events_for_each_user():
     
     for i, event_data in enumerate(dhruv_events):
         event = create_single_event(dhruv, event_data, i, categories, locations)
+        # Add tags to event
+        if available_tags:
+            tags_for_event = get_tags_for_event(event.title, event.category.name)
+            event.tags.set(tags_for_event)
+            tag_names = [tag.name for tag in tags_for_event]
+            print(f"  ✅ {event.title} ({event.status}) - Tags: {tag_names}")
+        else:
+            print(f"  ✅ {event.title} ({event.status})")
         created_events.append(event)
-        print(f"  ✅ {event.title} ({event.status})")
     
     print(f"\n✅ Created {len(created_events)} events total (4 per person)")
     return created_events
@@ -357,12 +462,14 @@ def create_user_history():
     print(f"Created {history_created} user history entries")
 
 def create_search_history():
-    """Create search history for users"""
+    """Create search history for users including tag-based searches"""
     users = User.objects.filter(is_superuser=False)
     search_terms = [
         'tree planting', 'beach cleanup', 'recycling', 'workshop', 'oshawa events',
         'community garden', 'wildlife conservation', 'sustainable living', 'composting',
-        'solar energy', 'climate action', 'native plants', 'environmental', 'green'
+        'solar energy', 'climate action', 'native plants', 'environmental', 'green',
+        'outdoor activities', 'volunteer opportunities', 'educational workshops',
+        'corporate events', 'youth programs', 'research projects'  # Added tag-related searches
     ]
     
     history_created = 0
@@ -384,7 +491,7 @@ def create_search_history():
 
 def main():
     """Main function to populate the database"""
-    print("🌱 Starting EcoConnect Database Population - FIXED VERSION")
+    print("🌱 Starting EcoConnect Database Population - WITH EVENTTAGS")
     print("=" * 60)
     
     # Clear old data first
@@ -394,8 +501,8 @@ def main():
     print("👥 Creating team members...")
     users = create_users()
     
-    # Create events - EXACTLY 4 per person
-    print("📅 Creating environmental events - 4 per person...")
+    # Create events - EXACTLY 4 per person WITH TAGS
+    print("📅 Creating environmental events with tags - 4 per person...")
     events = create_events_for_each_user()
     
     # Create participations
@@ -412,7 +519,7 @@ def main():
     
     print("=" * 60)
     print("✅ Database population completed!")
-    print(f"Created: {len(users)} users, {len(events)} events")
+    print(f"Created: {len(users)} users, {len(events)} events with EventTags")
     print("📸 Photos can be added later through the web interface")
     print("\nLogin credentials for testing:")
     print("- Username: vansh_patel, Password: password123")
@@ -420,13 +527,14 @@ def main():
     print("- Username: kirtan_prajapati, Password: password123") 
     print("- Username: dhruv_patel, Password: password123")
     
-    # Final verification
-    print(f"\n📋 Final Event Breakdown:")
+    # Final verification with tags
+    print(f"\n📋 Final Event Breakdown with Tags:")
     for user in User.objects.filter(is_superuser=False).order_by('username'):
-        user_events = Event.objects.filter(organizer=user)
+        user_events = Event.objects.filter(organizer=user).prefetch_related('tags')
         print(f"  {user.first_name} {user.last_name}: {user_events.count()} events")
         for event in user_events:
-            print(f"    - {event.title} ({event.status})")
+            tag_names = [tag.name for tag in event.tags.all()]
+            print(f"    - {event.title} ({event.status}) - Tags: {tag_names}")
 
 if __name__ == '__main__':
     main()

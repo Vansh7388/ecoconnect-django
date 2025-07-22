@@ -7,7 +7,7 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from .forms import EventCreationForm, EventEditForm
 from .models import Event, EventCategory
-from search.models import Location
+from search.models import Location, EventTag
 from interaction.models import EventParticipation
 from search.models import SearchHistory
 from django.db.models import Q, Count, Case, When, IntegerField, F
@@ -18,12 +18,12 @@ class EventListView(ListView):
     model = Event
     template_name = 'events/event_list.html'
     context_object_name = 'events'
-    paginate_by = 6 
+    paginate_by = 6
     
     def get_queryset(self):
         queryset = Event.objects.annotate(
             participant_count=Count('eventparticipation')
-        ).select_related('category', 'organizer', 'location')
+        ).select_related('category', 'organizer', 'location').prefetch_related('tags')
         
         # Get search parameters
         search_query = self.request.GET.get('search', '').strip()
@@ -36,6 +36,7 @@ class EventListView(ListView):
         status_filter = self.request.GET.get('status', '').strip()
         availability_filter = self.request.GET.get('availability', '').strip()
         sort_filter = self.request.GET.get('sort', 'date').strip()
+        tags_filter = self.request.GET.getlist('tags')
         
         # Keyword search
         if search_query:
@@ -45,14 +46,19 @@ class EventListView(ListView):
                 Q(address_details__icontains=search_query) |
                 Q(location__name__icontains=search_query) |
                 Q(organizer__first_name__icontains=search_query) |
-                Q(organizer__last_name__icontains=search_query)
-            )
+                Q(organizer__last_name__icontains=search_query) |
+                Q(tags__name__icontains=search_query)
+            ).distinct()
         
         # Category filter
         if category_filter:
             queryset = queryset.filter(category__name__iexact=category_filter)
         
-        # Location filter - now using Location model
+        # Tags filter
+        if tags_filter:
+            queryset = queryset.filter(tags__id__in=tags_filter).distinct()
+        
+        # Location filter
         if location_filter:
             queryset = queryset.filter(location__name__iexact=location_filter)
         
@@ -96,7 +102,6 @@ class EventListView(ListView):
         # Availability filter
         if availability_filter:
             if availability_filter == 'available':
-                # Events with spots available
                 queryset = queryset.annotate(
                     spots_available=Case(
                         When(participant_count__lt=F('max_participants'), then=1),
@@ -105,7 +110,6 @@ class EventListView(ListView):
                     )
                 ).filter(spots_available=1)
             elif availability_filter == 'full':
-                # Full events
                 queryset = queryset.filter(participant_count__gte=F('max_participants'))
         
         # Sorting
@@ -131,9 +135,10 @@ class EventListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
-        # Categories and locations for dropdown
+        # Categories, locations, and tags for dropdown
         context['categories'] = EventCategory.objects.all()
         context['locations'] = Location.objects.all()
+        context['tags'] = EventTag.objects.all().order_by('name')
         
         # Pass all filter values back to template
         context['search_query'] = self.request.GET.get('search', '')
@@ -146,6 +151,7 @@ class EventListView(ListView):
         context['status_filter'] = self.request.GET.get('status', '')
         context['availability_filter'] = self.request.GET.get('availability', '')
         context['sort_filter'] = self.request.GET.get('sort', 'date')
+        context['tags_filter'] = self.request.GET.getlist('tags')
         
         # Add user participation status for each event
         if self.request.user.is_authenticated:
@@ -166,7 +172,7 @@ class EventDetailView(DetailView):
     
     def get_object(self):
         return get_object_or_404(
-            Event.objects.prefetch_related('photos__user').select_related('location', 'category', 'organizer').annotate(
+            Event.objects.prefetch_related('photos__user', 'tags').select_related('location', 'category', 'organizer').annotate(
                 participant_count=Count('eventparticipation')
             ), 
             id=self.kwargs['event_id']
@@ -174,7 +180,7 @@ class EventDetailView(DetailView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        event = self.get_object()
+        event = self.object
         
         # Check if current user has joined this event
         if self.request.user.is_authenticated:
@@ -188,7 +194,7 @@ class EventDetailView(DetailView):
         # Get participants list
         context['participants'] = EventParticipation.objects.filter(
             event=event
-        ).select_related('user')[:10]  # Show first 10 participants
+        ).select_related('user')[:10]
         
         # Check if event is full
         context['is_full'] = event.participant_count >= event.max_participants
@@ -242,6 +248,7 @@ def create_event(request):
             event = form.save(commit=False)
             event.organizer = request.user
             event.save()
+            form.save_m2m()  # Save many-to-many relationships (tags)
             messages.success(request, f'Event "{event.title}" created successfully!')
             return redirect('events:event_detail', event_id=event.id)
         else:
@@ -249,11 +256,12 @@ def create_event(request):
     else:
         form = EventCreationForm()
     
-    # Pass categories and locations to template
+    # Pass categories, locations, and tags to template
     context = {
         'form': form,
         'categories': EventCategory.objects.all(),
-        'locations': Location.objects.all()
+        'locations': Location.objects.all(),
+        'tags': EventTag.objects.all().order_by('name')
     }
     
     return render(request, 'events/create_event.html', context)
@@ -280,7 +288,8 @@ def edit_event(request, event_id):
     context = {
         'form': form, 
         'event': event,
-        'locations': Location.objects.all()
+        'locations': Location.objects.all(),
+        'tags': EventTag.objects.all().order_by('name')
     }
     
     return render(request, 'events/edit_event.html', context)
