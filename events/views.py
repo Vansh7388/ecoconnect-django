@@ -18,7 +18,7 @@ class EventListView(ListView):
     model = Event
     template_name = 'events/event_list.html'
     context_object_name = 'events'
-    paginate_by = 12
+    paginate_by = 6 
     
     def get_queryset(self):
         queryset = Event.objects.annotate(

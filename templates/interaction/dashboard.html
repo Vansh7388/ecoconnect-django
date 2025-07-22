@@ -8,7 +8,7 @@
     <div class="row mb-4">
         <div class="col-md-8">
             <h2><i class="fas fa-tachometer-alt text-success"></i> My Dashboard</h2>
-            <p class="text-muted">Track your environmental impact and upcoming events</p>
+            <p class="text-muted">Track your environmental impact and manage your events</p>
         </div>
         <div class="col-md-4 text-end">
             <a href="{% url 'interaction:upload_photo' %}" class="btn btn-info me-2">
@@ -65,29 +65,71 @@
         <!-- My Organized Events -->
         <div class="col-lg-6 mb-4">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5><i class="fas fa-calendar-plus text-success"></i> My Organized Events</h5>
+                    <a href="{% url 'events:event_list' %}?organizer=me" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-list"></i> View All
+                    </a>
                 </div>
                 <div class="card-body">
                     {% if organized_events %}
                         {% for event in organized_events %}
-                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                            <div>
-                                <h6 class="mb-1">{{ event.title }}</h6>
-                                <small class="text-muted">
-                                    <i class="fas fa-calendar"></i> {{ event.date_time|date:"M d, Y g:i A" }}<br>
-                                    <i class="fas fa-map-marker-alt"></i> {{ event.location }}
-                                </small>
+                        <div class="card mb-3 border-start border-success border-3">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'events:event_detail' event.id %}" class="text-decoration-none text-dark fw-bold">
+                                                {{ event.title }}
+                                                {% if event.status == 'completed' %}
+                                                    <i class="fas fa-heart text-danger ms-1" title="Memory"></i>
+                                                {% endif %}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-calendar"></i> {{ event.date_time|date:"M d, Y g:i A" }}<br>
+                                            <i class="fas fa-map-marker-alt"></i> {{ event.location.name }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge mb-2 {% if event.status == 'upcoming' %}bg-success{% elif event.status == 'ongoing' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ event.get_status_display }}
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> 
+                                        {% if event.status == 'completed' %}View Memories{% else %}View Details{% endif %}
+                                    </a>
+                                    
+                                    {% if event.status != 'completed' %}
+                                        <a href="{% url 'events:edit_event' event.id %}" class="btn btn-outline-warning btn-sm">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                    {% endif %}
+                                    
+                                    <a href="{% url 'interaction:upload_photo_event' event.id %}" class="btn btn-outline-info btn-sm">
+                                        <i class="fas fa-camera"></i> 
+                                        {% if event.status == 'completed' %}Add Memory{% else %}Upload{% endif %}
+                                    </a>
+                                    
+                                    {% if event.photos.count > 0 %}
+                                        <span class="btn btn-outline-secondary btn-sm disabled">
+                                            <i class="fas fa-images"></i> {{ event.photos.count }}
+                                        </span>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <span class="badge bg-{{ event.status|yesno:'success,warning,secondary' }}">
-                                {{ event.get_status_display }}
-                            </span>
                         </div>
                         {% endfor %}
                     {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-calendar-times fa-3x text-muted mb-2"></i>
-                            <p class="text-muted">You haven't organized any events yet.</p>
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No events organized yet</h6>
+                            <p class="text-muted">Start making a difference in your community!</p>
                             <a href="{% url 'events:create_event' %}" class="btn btn-success btn-sm">
                                 <i class="fas fa-plus"></i> Create Your First Event
                             </a>
@@ -100,27 +142,76 @@
         <!-- Events I'm Attending -->
         <div class="col-lg-6 mb-4">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5><i class="fas fa-calendar-check text-info"></i> Events I'm Attending</h5>
+                    <a href="{% url 'events:event_list' %}?joined=me" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-list"></i> View All
+                    </a>
                 </div>
                 <div class="card-body">
                     {% if joined_events %}
                         {% for participation in joined_events %}
-                        <div class="d-flex justify-content-between align-items-center border-bottom py-2">
-                            <div>
-                                <h6 class="mb-1">{{ participation.event.title }}</h6>
-                                <small class="text-muted">
-                                    <i class="fas fa-calendar"></i> {{ participation.event.date_time|date:"M d, Y g:i A" }}<br>
-                                    <i class="fas fa-user"></i> by {{ participation.event.organizer.first_name }}
-                                </small>
+                        {% with event=participation.event %}
+                        <div class="card mb-3 border-start border-info border-3">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1">
+                                            <a href="{% url 'events:event_detail' event.id %}" class="text-decoration-none text-dark fw-bold">
+                                                {{ event.title }}
+                                                {% if event.status == 'completed' %}
+                                                    <i class="fas fa-heart text-danger ms-1" title="Memory"></i>
+                                                {% endif %}
+                                            </a>
+                                        </h6>
+                                        <small class="text-muted d-block">
+                                            <i class="fas fa-calendar"></i> {{ event.date_time|date:"M d, Y g:i A" }}<br>
+                                            <i class="fas fa-user"></i> by {{ event.organizer.first_name }} {{ event.organizer.last_name }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge mb-1 {% if event.status == 'upcoming' %}bg-success{% elif event.status == 'ongoing' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                            {{ event.get_status_display }}
+                                        </span>
+                                        <br><small class="text-muted">Joined {{ participation.joined_date|date:"M d" }}</small>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="d-flex gap-1 flex-wrap">
+                                    <a href="{% url 'events:event_detail' event.id %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-eye"></i> 
+                                        {% if event.status == 'completed' %}View Memories{% else %}View Event{% endif %}
+                                    </a>
+                                    
+                                    {% if event.status != 'completed' %}
+                                        <a href="{% url 'events:leave_event' event.id %}" class="btn btn-outline-danger btn-sm" 
+                                           onclick="return confirm('Are you sure you want to leave this event?')">
+                                            <i class="fas fa-minus"></i> Leave
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% if event.status == 'completed' and event.photos.count > 0 %}
+                                        <a href="{% url 'events:event_detail' event.id %}#photos" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-images"></i> Photos ({{ event.photos.count }})
+                                        </a>
+                                    {% endif %}
+                                    
+                                    {% if event.status == 'completed' %}
+                                        <a href="{% url 'interaction:upload_photo_event' event.id %}" class="btn btn-outline-info btn-sm">
+                                            <i class="fas fa-camera-retro"></i> Add Memory
+                                        </a>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <span class="badge bg-primary">Registered</span>
                         </div>
+                        {% endwith %}
                         {% endfor %}
                     {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-calendar-times fa-3x text-muted mb-2"></i>
-                            <p class="text-muted">You haven't joined any events yet.</p>
+                        <div class="text-center py-4">
+                            <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No events joined yet</h6>
+                            <p class="text-muted">Discover environmental events in your area!</p>
                             <a href="{% url 'events:event_list' %}" class="btn btn-info btn-sm">
                                 <i class="fas fa-search"></i> Browse Events
                             </a>
@@ -135,31 +226,80 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5><i class="fas fa-clock text-warning"></i> Recent Activity</h5>
+                    <small class="text-muted">Last 5 activities</small>
                 </div>
                 <div class="card-body">
                     {% if recent_activity %}
-                        {% for activity in recent_activity %}
-                        <div class="d-flex align-items-start mb-3">
-                            <div class="flex-shrink-0">
-                                <i class="fas fa-circle text-success" style="font-size: 8px; margin-top: 8px;"></i>
+                        <div class="timeline">
+                            {% for activity in recent_activity %}
+                            <div class="d-flex align-items-start mb-3 pb-3 border-bottom">
+                                <div class="flex-shrink-0 me-3">
+                                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        <i class="fas fa-circle" style="font-size: 8px;"></i>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <p class="mb-1">{{ activity.description }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock"></i> {{ activity.date|timesince }} ago
+                                    </small>
+                                </div>
                             </div>
-                            <div class="ms-3">
-                                <p class="mb-1">{{ activity.description }}</p>
-                                <small class="text-muted">{{ activity.date|timesince }} ago</small>
-                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     {% else %}
-                        <div class="text-center py-3">
-                            <i class="fas fa-history fa-3x text-muted mb-2"></i>
-                            <p class="text-muted">Your activity will appear here as you use EcoConnect.</p>
+                        <div class="text-center py-4">
+                            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No activity yet</h6>
+                            <p class="text-muted">Your environmental activities will appear here as you participate in events.</p>
                         </div>
                     {% endif %}
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Quick Actions Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body text-center py-4">
+                    <h5 class="mb-3"><i class="fas fa-rocket text-success"></i> Ready to Make More Impact?</h5>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="{% url 'events:create_event' %}" class="btn btn-success">
+                            <i class="fas fa-plus"></i> Create New Event
+                        </a>
+                        <a href="{% url 'events:event_list' %}" class="btn btn-outline-success">
+                            <i class="fas fa-search"></i> Find Events to Join
+                        </a>
+                        <a href="{% url 'interaction:upload_photo' %}" class="btn btn-outline-info">
+                            <i class="fas fa-camera"></i> Share Photos
+                        </a>
+                        <a href="{% url 'search:analytics' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-chart-bar"></i> View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<style>
+/* Custom styles for interactive dashboard */
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: box-shadow 0.2s ease-in-out;
+}
+
+.border-start.border-3 {
+    border-left-width: 4px !important;
+}
+
+.timeline .bg-success {
+    background: linear-gradient(45deg, #28a745, #20c997) !important;
+}
+</style>
 {% endblock %}

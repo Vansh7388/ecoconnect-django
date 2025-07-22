@@ -143,7 +143,7 @@
     {% if search_query or category_filter or date_filter or location_filter or date_range_filter or status_filter or availability_filter %}
     <div class="alert alert-info">
         <i class="fas fa-info-circle"></i> 
-        Found {{ events|length }} event{{ events|length|pluralize }} 
+        Found {{ paginator.count }} event{{ paginator.count|pluralize }} 
         {% if search_query %}for "<strong>{{ search_query }}</strong>"{% endif %}
         {% if category_filter %}in <strong>{{ category_filter }}</strong>{% endif %}
         {% if location_filter %}in <strong>{{ location_filter }}</strong>{% endif %}
@@ -223,6 +223,88 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <nav aria-label="Event pagination">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="pagination-info">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ paginator.count }} events
+                        </small>
+                    </div>
+                    <ul class="pagination mb-0">
+                        <!-- Previous Page -->
+                        {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1" aria-label="First">
+                                    <i class="fas fa-angle-double-left"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                    <i class="fas fa-angle-left"></i>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                            </li>
+                        {% endif %}
+
+                        <!-- Page Numbers -->
+                        {% for num in paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        <!-- Next Page -->
+                        {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" aria-label="Next">
+                                    <i class="fas fa-angle-right"></i>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ paginator.num_pages }}" aria-label="Last">
+                                    <i class="fas fa-angle-double-right"></i>
+                                </a>
+                            </li>
+                        {% else %}
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                            </li>
+                            <li class="page-item disabled">
+                                <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+                <!-- Page Size Info -->
+                <div class="text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-grip-horizontal"></i> 
+                        Showing 6 events per page • Page {{ page_obj.number }} of {{ paginator.num_pages }}
+                    </small>
+                </div>
+            </nav>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Search Tips -->
     {% if not events and not search_query and not category_filter %}

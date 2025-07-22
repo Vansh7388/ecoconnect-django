@@ -6,7 +6,7 @@ from django.utils import timezone
 from events.models import Event
 from .models import EventParticipation, PhotoUpload, UserHistory
 from .forms import PhotoUploadForm
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Prefetch
 
 @login_required
 def dashboard(request):
@@ -25,39 +25,79 @@ def dashboard(request):
     photos_uploaded = PhotoUpload.objects.filter(user=user).count()
     total_visits = UserHistory.objects.filter(user=user).count()
     
-    # Get user's organized events (limit to recent 5)
-    organized_events = Event.objects.filter(organizer=user).order_by('-date_time')[:5]
+    # Get user's organized events with photo counts (limit to recent 5)
+    organized_events = Event.objects.filter(
+        organizer=user
+    ).prefetch_related(
+        'photos'
+    ).annotate(
+        photo_count=Count('photos')
+    ).order_by('-date_time')[:5]
     
-    # Get events user is participating in (limit to recent 5)
-    joined_events = EventParticipation.objects.filter(user=user).select_related('event').order_by('-joined_date')[:5]
+    # Get events user is participating in with photo counts (limit to recent 5)
+    joined_events = EventParticipation.objects.filter(
+        user=user
+    ).select_related(
+        'event__organizer', 
+        'event__category', 
+        'event__location'
+    ).prefetch_related(
+        'event__photos'
+    ).annotate(
+        event_photo_count=Count('event__photos')
+    ).order_by('-joined_date')[:5]
     
-    # Create recent activity timeline
+    # Create enhanced recent activity timeline
     recent_activity = []
     
-    # Add recent events organized
+    # Add recent events organized with more detail
     for event in Event.objects.filter(organizer=user).order_by('-created_at')[:3]:
+        status_text = "organized"
+        if event.status == 'completed':
+            status_text = "completed"
+        elif event.status == 'ongoing':
+            status_text = "started"
+        
         recent_activity.append({
-            'description': f'You organized "{event.title}"',
-            'date': event.created_at
+            'description': f'You {status_text} "{event.title}" - {event.category.name}',
+            'date': event.created_at,
+            'type': 'organized',
+            'event_id': event.id
         })
     
-    # Add recent participations
-    for participation in EventParticipation.objects.filter(user=user).order_by('-joined_date')[:3]:
+    # Add recent participations with more detail
+    for participation in EventParticipation.objects.filter(user=user).select_related('event').order_by('-joined_date')[:3]:
+        event_status = ""
+        if participation.event.status == 'completed':
+            event_status = " (completed)"
+        
         recent_activity.append({
-            'description': f'You joined "{participation.event.title}"',
-            'date': participation.joined_date
+            'description': f'You joined "{participation.event.title}"{event_status}',
+            'date': participation.joined_date,
+            'type': 'joined',
+            'event_id': participation.event.id
         })
     
-    # Add recent photo uploads
-    for photo in PhotoUpload.objects.filter(user=user).order_by('-upload_date')[:3]:
+    # Add recent photo uploads with event context
+    for photo in PhotoUpload.objects.filter(user=user).select_related('event').order_by('-upload_date')[:3]:
         recent_activity.append({
-            'description': f'You uploaded a photo for "{photo.event.title}"',
-            'date': photo.upload_date
+            'description': f'You shared a photo from "{photo.event.title}"',
+            'date': photo.upload_date,
+            'type': 'photo',
+            'event_id': photo.event.id
         })
     
-    # Sort activity by date
+    # Sort activity by date and limit to 5 most recent
     recent_activity.sort(key=lambda x: x['date'], reverse=True)
-    recent_activity = recent_activity[:5]  # Limit to 5 most recent
+    recent_activity = recent_activity[:5]
+    
+    # Get memory events (completed events with photos)
+    memory_events = Event.objects.filter(
+        Q(organizer=user) | Q(eventparticipation__user=user),
+        status='completed'
+    ).annotate(
+        photo_count=Count('photos')
+    ).filter(photo_count__gt=0).distinct()[:3]
     
     context = {
         'events_organized': events_organized,
@@ -67,6 +107,7 @@ def dashboard(request):
         'organized_events': organized_events,
         'joined_events': joined_events,
         'recent_activity': recent_activity,
+        'memory_events': memory_events,
     }
     
     return render(request, 'interaction/dashboard.html', context)
@@ -111,6 +152,11 @@ def upload_photo(request, event_id=None):
                 photo.event = event
                 photo.user = request.user
                 photo.save()
+                
+                # Create activity entry
+                activity_desc = f'You added a photo to "{event.title}"'
+                if event.status == 'completed':
+                    activity_desc = f'You added a memory to "{event.title}"'
                 
                 messages.success(request, f'Photo uploaded successfully for "{event.title}"!')
                 return redirect('interaction:dashboard')
