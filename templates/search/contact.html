@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+
+{% block title %}Contact Us - EcoConnect{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            <h1 class="text-success"><i class="fas fa-envelope"></i> Contact Us</h1>
+            <p class="lead text-muted">We'd love to hear from you! Get in touch with the EcoConnect team.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Contact Form -->
+        <div class="col-lg-8 mb-4">
+            <div class="card card-eco shadow">
+                <div class="card-header eco-bg text-white">
+                    <h4 class="mb-0"><i class="fas fa-paper-plane"></i> Send us a Message</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- Name and Email Row -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="name" class="form-label">
+                                    <i class="fas fa-user text-success"></i> Your Name *
+                                </label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       placeholder="Enter your full name" required
+                                       value="{{ request.POST.name|default:'' }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">
+                                    <i class="fas fa-envelope text-success"></i> Email Address *
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="your.email@example.com" required
+                                       value="{{ request.POST.email|default:'' }}">
+                            </div>
+                        </div>
+
+                        <!-- Subject -->
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">
+                                <i class="fas fa-tag text-success"></i> Subject *
+                            </label>
+                            <input type="text" class="form-control" id="subject" name="subject" 
+                                   placeholder="What is your message about?" required
+                                   value="{{ request.POST.subject|default:'' }}">
+                        </div>
+
+                        <!-- Message -->
+                        <div class="mb-4">
+                            <label for="message" class="form-label">
+                                <i class="fas fa-comment text-success"></i> Message *
+                            </label>
+                            <textarea class="form-control" id="message" name="message" rows="6" 
+                                      placeholder="Please tell us how we can help you..." required>{{ request.POST.message|default:'' }}</textarea>
+                            <small class="form-text text-muted">Minimum 20 characters required</small>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-paper-plane"></i> Send Message
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Contact Tips -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-lightbulb text-warning"></i> Contact Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> <strong>Bug Reports:</strong> Include steps to reproduce the issue</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Feature Requests:</strong> Describe your use case clearly</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>General Questions:</strong> Check our FAQ first</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success"></i> <strong>Event Issues:</strong> Include event name and date</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Account Problems:</strong> Mention your username</li>
+                                <li><i class="fas fa-check text-success"></i> <strong>Partnership Inquiries:</strong> Tell us about your organization</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Information Sidebar -->
+        <div class="col-lg-4">
+            <!-- Contact Info -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle text-info"></i> Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-university text-success me-3"></i>
+                            <div>
+                                <strong>University of Windsor</strong><br>
+                                <small class="text-muted">School of Computer Science</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-map-marker-alt text-success me-3"></i>
+                            <div>
+                                <strong>Location</strong><br>
+                                <small class="text-muted">Windsor, Ontario, Canada</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-envelope text-success me-3"></i>
+                            <div>
+                                <strong>Email</strong><br>
+                                <small class="text-muted">contact@ecoconnect.com</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-code text-success me-3"></i>
+                            <div>
+                                <strong>Course</strong><br>
+                                <small class="text-muted">COMP-8347 - Winter 2025</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Response Time -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-clock text-warning"></i> Response Time</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <i class="fas fa-bolt text-warning"></i> 
+                        <strong>Urgent Issues:</strong> Within 24 hours
+                    </p>
+                    <p class="mb-2">
+                        <i class="fas fa-comments text-info"></i> 
+                        <strong>General Inquiries:</strong> 2-3 business days
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-lightbulb text-success"></i> 
+                        <strong>Feature Requests:</strong> 1 week
+                    </p>
+                </div>
+            </div>
+
+            <!-- Alternative Contact Methods -->
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-link text-primary"></i> Other Ways to Connect</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'events:event_list' %}" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-calendar"></i> Browse Events
+                        </a>
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'interaction:dashboard' %}" class="btn btn-outline-info btn-sm">
+                                <i class="fas fa-tachometer-alt"></i> Your Dashboard
+                            </a>
+                        {% else %}
+                            <a href="{% url 'users:register' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-user-plus"></i> Join Community
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'search:about' %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-info"></i> Learn About Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="text-center text-success mb-4">Frequently Asked Questions</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-success">How do I create an environmental event?</h6>
+                    <p class="mb-0">Simply register for an account, click "Create Event" in the navigation, and fill out the event details form. Your event will be visible to the community immediately.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-success">Is EcoConnect free to use?</h6>
+                    <p class="mb-0">Yes! EcoConnect is completely free for all users. Our mission is to make environmental action accessible to everyone in the community.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-success">Can I upload photos from events?</h6>
+                    <p class="mb-0">Absolutely! You can upload photos from events you've organized or attended. This helps document the positive environmental impact of our community.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h6 class="text-success">How do I join an environmental event?</h6>
+                    <p class="mb-0">Browse our events page, find an event you're interested in, and click "Join Event". You'll receive confirmation and can track your participation in your dashboard.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for form enhancements -->
+<script>
+    // Character counter for message field
+    document.addEventListener('DOMContentLoaded', function() {
+        const messageField = document.getElementById('message');
+        if (messageField) {
+            const helpText = messageField.nextElementSibling;
+            
+            messageField.addEventListener('input', function() {
+                const currentLength = this.value.length;
+                const minLength = 20;
+                
+                if (currentLength < minLength) {
+                    helpText.textContent = `Minimum 20 characters required (${currentLength}/20)`;
+                    helpText.className = 'form-text text-danger';
+                } else {
+                    helpText.textContent = `${currentLength} characters`;
+                    helpText.className = 'form-text text-success';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
