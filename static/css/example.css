@@ -1,0 +1,16 @@
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #222;
+}
+
+h1, h2, h3 {
+    color: #198754;
+    margin-bottom: 0.5em;
+}
+
+.btn-success {
+    background-color: #198754;
+    border: none;
+    color: #fff;
+}
