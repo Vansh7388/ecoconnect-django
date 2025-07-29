@@ -134,8 +134,9 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environments - UPDATED FOR EMAIL SECURITY
 .env
+.env.*
 .envrc
 .venv
 env/
@@ -143,6 +144,12 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Email service credentials (extra protection)
+sendgrid.env
+gmail.env
+*.key
+*.secret
 
 # Spyder project settings
 .spyderproject
@@ -214,5 +221,4 @@ staticfiles/
 static_root/
 
 # Django Secret Keys
-.env
 secrets.json

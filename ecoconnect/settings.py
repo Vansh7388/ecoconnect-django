@@ -13,6 +13,13 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 
+# Load environment variables
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -21,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-x9kuy$1)!5+=0y7u41_z14nv%xa!@pn2k@sn%n&45xy7*w5&28'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-x9kuy$1)!5+=0y7u41_z14nv%xa!@pn2k@sn%n&45xy7*w5&28')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -138,9 +145,28 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email Configuration for Password Reset
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'EcoConnect <noreply@ecoconnect.com>'
+# EMAIL CONFIGURATION - GMAIL (MUCH EASIER!)
+# ============================================
+
+# Gmail Configuration - Simple and Works!
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('GMAIL_USER')
+EMAIL_HOST_PASSWORD = os.getenv('GMAIL_APP_PASSWORD')
+DEFAULT_FROM_EMAIL = f'EcoConnect <{os.getenv("GMAIL_USER")}>'
+
+# Email settings for better delivery
+EMAIL_USE_SSL = False  # We're using TLS instead
+EMAIL_TIMEOUT = 60
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# For development - you can switch to console backend for testing
+if DEBUG:
+    # Uncomment the line below to see emails in console instead of sending them
+    # EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    pass
 
 # Security settings for file uploads
 SECURE_FILE_UPLOADS = True
